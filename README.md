@@ -32,7 +32,7 @@
 
 ## 项目简介
 
-[vue3-element-admin](https://gitcode.com/youlai/vue3-element-admin) 基于 Vue3、Vite、TypeScript 和 Element-Plus 搭建的极简开箱即用企业级后台管理前端模板。 （配套 Java 后端 [youlai-boot](https://gitee.com/youlaiorg/youlai-boot) 和 Node 后端 [youlai-nest](https://gitee.com/youlaiorg/youlai-nest)）。
+[vue3-element-admin-js](https://gitee.com/youlaiorg/vue3-element-admin-js) 基于 Vue3、Vite、JavaScript 和 Element-Plus 搭建的极简开箱即用企业级后台管理前端模板。 （配套 Java 后端 [youlai-boot](https://gitee.com/youlaiorg/youlai-boot) 和 Node 后端 [youlai-nest](https://gitee.com/youlaiorg/youlai-nest)）。
 
 
 ## 项目特色
@@ -154,30 +154,6 @@ server {
 2. 根据后端工程的说明文档 [README.md](https://gitee.com/youlaiorg/youlai-boot#%E9%A1%B9%E7%9B%AE%E8%BF%90%E8%A1%8C) 完成本地启动。
 3. 修改 `.env.development` 文件中的 `VITE_APP_API_URL` 的值，将其从 https://api.youlai.tech 更改为 http://localhost:8989 即可。
 
-
-## 注意事项
-
-- **自动导入插件自动生成默认关闭**
-
-  模板项目的组件类型声明已自动生成。如果添加和使用新的组件，请按照图示方法开启自动生成。在自动生成完成后，记得将其设置为 `false`，避免重复执行引发冲突。
-
-  ![](https://foruda.gitee.com/images/1687755823137387608/412ea803_716974.png)
-
-- **项目启动浏览器访问空白**
-
-  请升级浏览器尝试，低版本浏览器内核可能不支持某些新的 JavaScript 语法，比如可选链操作符 `?.`。
-
-- **项目同步仓库更新升级**
-
-  项目同步仓库更新升级之后，建议 `pnpm install` 安装更新依赖之后启动 。
-
-- **项目组件、函数和引用爆红**
-
-	重启 VSCode 尝试
-
-- **其他问题**
-
-  如果有其他问题或者建议，建议 [ISSUE](https://gitee.com/youlaiorg/vue3-element-admin/issues/new)
 
 
 ## 提交规范
