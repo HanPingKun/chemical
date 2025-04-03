@@ -51,7 +51,7 @@
   </el-checkbox-group>
 </template>
 
-<script setup lang="ts">
+<script setup>
 import { useDictStore } from "@/store";
 
 const dictStore = useDictStore();
@@ -68,7 +68,7 @@ const props = defineProps({
   type: {
     type: String,
     default: "select",
-    validator: (value: string) => ["select", "radio", "checkbox"].includes(value),
+    validator: (value) => ["select", "radio", "checkbox"].includes(value),
   },
   placeholder: {
     type: String,
@@ -90,9 +90,9 @@ const props = defineProps({
 
 const emit = defineEmits(["update:modelValue"]);
 
-const options = ref<Array<{ label: string; value: string | number }>>([]);
+const options = ref([]);
 
-const selectedValue = ref<any>(
+const selectedValue = ref(
   typeof props.modelValue === "string" || typeof props.modelValue === "number"
     ? props.modelValue
     : Array.isArray(props.modelValue)
@@ -121,7 +121,7 @@ watch(
 );
 
 // 监听 selectedValue 的变化并触发 update:modelValue
-function handleChange(val: any) {
+function handleChange(val) {
   emit("update:modelValue", val);
 }
 

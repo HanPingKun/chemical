@@ -20,27 +20,21 @@
   </div>
 </template>
 
-<script lang="ts" setup>
+<script setup>
 import { LayoutMode } from "@/enums/settings/layout.enum";
 
-interface LayoutOption {
-  value: LayoutMode;
-  label: string;
-  className: string;
-}
-
-const layoutOptions: LayoutOption[] = [
+const layoutOptions = [
   { value: LayoutMode.LEFT, label: "左侧模式", className: "left" },
   { value: LayoutMode.TOP, label: "顶部模式", className: "top" },
   { value: LayoutMode.MIX, label: "混合模式", className: "mix" },
 ];
 
-const modelValue = defineModel<LayoutMode>("modelValue", {
+const modelValue = defineModel("modelValue", {
   required: true,
   default: () => LayoutMode.LEFT,
 });
 
-function handleLayoutChange(layout: LayoutMode) {
+function handleLayoutChange(layout) {
   modelValue.value = layout;
 }
 </script>

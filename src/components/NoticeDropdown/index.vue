@@ -86,13 +86,13 @@
   </div>
 </template>
 
-<script setup lang="ts">
-import NoticeAPI, { NoticePageVO, NoticeDetailVO } from "@/api/system/notice.api";
+<script setup>
+import NoticeAPI from "@/api/system/notice.api";
 import router from "@/router";
 
-const noticeList = ref<NoticePageVO[]>([]);
+const noticeList = ref([]);
 const noticeDialogVisible = ref(false);
-const noticeDetail = ref<NoticeDetailVO | null>(null);
+const noticeDetail = ref(null);
 
 import { useStomp } from "@/hooks/useStomp";
 const { subscribe, unsubscribe, isConnected } = useStomp();
@@ -135,7 +135,7 @@ function featchMyNotice() {
 }
 
 // 阅读通知公告
-function handleReadNotice(id: string) {
+function handleReadNotice(id) {
   NoticeAPI.getDetail(id).then((data) => {
     noticeDialogVisible.value = true;
     noticeDetail.value = data;

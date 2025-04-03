@@ -11,7 +11,7 @@
   </div>
 </template>
 
-<script lang="ts" setup>
+<script setup>
 import defaultSettings from "@/settings";
 import logo from "@/assets/logo.png";
 

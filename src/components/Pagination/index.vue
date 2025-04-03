@@ -15,14 +15,14 @@
   </el-scrollbar>
 </template>
 
-<script setup lang="ts">
+<script setup>
 const props = defineProps({
   total: {
-    type: Number as PropType<number>,
+    type: Number,
     default: 0,
   },
   pageSizes: {
-    type: Array as PropType<number[]>,
+    type: Array,
     default() {
       return [10, 20, 30, 50];
     },
@@ -61,7 +61,7 @@ const pageSize = defineModel("limit", {
 
 watch(
   () => props.total,
-  (newVal: number) => {
+  (newVal) => {
     const lastPage = Math.ceil(newVal / pageSize.value);
     if (newVal > 0 && currentPage.value > lastPage) {
       currentPage.value = lastPage;
@@ -70,12 +70,12 @@ watch(
   }
 );
 
-function handleSizeChange(val: number) {
+function handleSizeChange(val) {
   currentPage.value = 1;
   emit("pagination", { page: currentPage.value, limit: val });
 }
 
-function handleCurrentChange(val: number) {
+function handleCurrentChange(val) {
   emit("pagination", { page: val, limit: pageSize.value });
 }
 </script>

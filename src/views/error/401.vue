@@ -19,7 +19,7 @@
   </div>
 </template>
 
-<script setup lang="ts">
+<script setup>
 defineOptions({ name: "Page401" });
 const router = useRouter();
 </script>

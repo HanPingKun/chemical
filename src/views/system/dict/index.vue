@@ -123,39 +123,38 @@
   </div>
 </template>
 
-<script setup lang="ts">
+<script setup>
 defineOptions({
   name: "Dict",
   inherititems: false,
 });
 
-import DictAPI, { DictPageQuery, DictPageVO, DictForm } from "@/api/system/dict.api";
-
+import DictAPI from "@/api/system/dict.api";
 import router from "@/router";
 
 const queryFormRef = ref();
 const dataFormRef = ref();
 
 const loading = ref(false);
-const ids = ref<number[]>([]);
+const ids = ref([]);
 const total = ref(0);
 
-const queryParams = reactive<DictPageQuery>({
+const queryParams = reactive({
   pageNum: 1,
   pageSize: 10,
 });
 
-const tableData = ref<DictPageVO[]>();
+const tableData = ref();
 
 const dialog = reactive({
   title: "",
   visible: false,
 });
 
-const formData = reactive<DictForm>({});
+const formData = reactive({});
 
 const computedRules = computed(() => {
-  const rules: Partial<Record<string, any>> = {
+  const rules = {
     name: [{ required: true, message: "请输入字典名称", trigger: "blur" }],
     dictCode: [{ required: true, message: "请输入字典编码", trigger: "blur" }],
   };
@@ -183,8 +182,8 @@ function handleResetQuery() {
 }
 
 // 行选择
-function handleSelectionChange(selection: any) {
-  ids.value = selection.map((item: any) => item.id);
+function handleSelectionChange(selection) {
+  ids.value = selection.map((item) => item.id);
 }
 
 // 新增字典
@@ -193,61 +192,47 @@ function handleAddClick() {
   dialog.title = "新增字典";
 }
 
-/**
- * 编辑字典
- *
- * @param id 字典ID
- */
-function handleEditClick(id: string) {
+// 编辑字典
+function handleEditClick(id) {
   dialog.visible = true;
-  dialog.title = "修改字典";
+  dialog.title = "编辑字典";
   DictAPI.getFormData(id).then((data) => {
     Object.assign(formData, data);
   });
 }
 
-// 提交字典表单
+// 提交表单
 function handleSubmitClick() {
-  dataFormRef.value.validate((isValid: boolean) => {
-    if (isValid) {
-      loading.value = true;
+  dataFormRef.value.validate((valid) => {
+    if (valid) {
       const id = formData.id;
       if (id) {
-        DictAPI.update(id, formData)
-          .then(() => {
-            ElMessage.success("修改成功");
-            handleCloseDialog();
-            handleQuery();
-          })
-          .finally(() => (loading.value = false));
+        DictAPI.update(id, formData).then(() => {
+          ElMessage.success("修改成功");
+          handleCloseDialog();
+          handleResetQuery();
+        });
       } else {
-        DictAPI.create(formData)
-          .then(() => {
-            ElMessage.success("新增成功");
-            handleCloseDialog();
-            handleQuery();
-          })
-          .finally(() => (loading.value = false));
+        DictAPI.create(formData).then(() => {
+          ElMessage.success("新增成功");
+          handleCloseDialog();
+          handleResetQuery();
+        });
       }
     }
   });
 }
 
-// 关闭字典弹窗
+// 关闭弹窗
 function handleCloseDialog() {
   dialog.visible = false;
-
   dataFormRef.value.resetFields();
   dataFormRef.value.clearValidate();
-
   formData.id = undefined;
 }
-/**
- * 删除字典
- *
- * @param id 字典ID
- */
-function handleDelete(id?: number) {
+
+// 删除字典
+function handleDelete(id) {
   const attrGroupIds = [id || ids.value].join(",");
   if (!attrGroupIds) {
     ElMessage.warning("请勾选删除项");
@@ -271,7 +256,7 @@ function handleDelete(id?: number) {
 }
 
 // 打开字典项
-function handleOpenDictData(row: DictPageVO) {
+function handleOpenDictData(row) {
   router.push({
     path: "/system/dict-item",
     query: { dictCode: row.dictCode, title: "【" + row.name + "】字典数据" },

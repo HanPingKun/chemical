@@ -40,44 +40,63 @@
   </div>
 </template>
 
-<script setup lang="ts">
+<script setup>
 import { useElementHover } from "@vueuse/core";
 
 const emit = defineEmits(["close"]);
 
-interface Props {
-  /** 滚动文本内容（必填） */
-  text: string;
-  /** 滚动速度，数值越小滚动越慢 */
-  speed?: number;
-  /** 滚动方向：左侧或右侧 */
-  direction?: "left" | "right";
-  /** 样式类型 */
-  type?: "default" | "success" | "warning" | "danger" | "info";
-  /** 是否显示关闭按钮 */
-  showClose?: boolean;
-  /** 是否启用打字机效果 */
-  typewriter?: boolean;
-  /** 打字机效果的速度，数值越小打字越快 */
-  typewriterSpeed?: number;
-}
-
 // 定义组件属性及默认值
-const props = withDefaults(defineProps<Props>(), {
+const props = withDefaults(defineProps({
+  /** 滚动文本内容（必填） */
+  text: {
+    type: String,
+    required: true
+  },
+  /** 滚动速度，数值越小滚动越慢 */
+  speed: {
+    type: Number,
+    default: 70
+  },
+  /** 滚动方向：左侧或右侧 */
+  direction: {
+    type: String,
+    default: "left"
+  },
+  /** 样式类型 */
+  type: {
+    type: String,
+    default: "default"
+  },
+  /** 是否显示关闭按钮 */
+  showClose: {
+    type: Boolean,
+    default: false
+  },
+  /** 是否启用打字机效果 */
+  typewriter: {
+    type: Boolean,
+    default: false
+  },
+  /** 打字机效果的速度，数值越小打字越快 */
+  typewriterSpeed: {
+    type: Number,
+    default: 100
+  }
+}), {
   speed: 70,
   direction: "left",
   type: "default",
   showClose: false,
   typewriter: false,
-  typewriterSpeed: 100,
+  typewriterSpeed: 100
 });
 
 // 容器元素引用
-const containerRef = ref<HTMLElement | null>(null);
+const containerRef = ref(null);
 // 使用 vueuse 的 useElementHover 检测鼠标悬停状态
 const isHovered = useElementHover(containerRef);
 // 滚动内容元素引用
-const scrollContent = ref<HTMLElement | null>(null);
+const scrollContent = ref(null);
 // 动画持续时间（秒）
 const animationDuration = ref(0);
 
@@ -87,7 +106,7 @@ const animationDuration = ref(0);
 // 当前已显示的文本内容
 const currentText = ref("");
 // 打字机定时器引用，用于清理
-let typewriterTimer: ReturnType<typeof setTimeout> | null = null;
+let typewriterTimer = null;
 // 打字机效果是否已完成
 const isTypewriterComplete = ref(false);
 
@@ -249,164 +268,70 @@ watch(
 
   .right-icon {
     right: 0;
-    cursor: pointer;
-    background-color: transparent !important;
   }
 
   .scroll-wrapper {
+    position: relative;
     flex: 1;
-    margin-left: 34px;
+    margin: 0 40px;
     overflow: hidden;
   }
 
   .text-scroll-content {
     display: flex;
-    height: 34px;
-    line-height: 34px;
     white-space: nowrap;
-    animation: scroll linear infinite;
-    animation-duration: var(--animation-duration);
-    animation-direction: var(--animation-direction);
-    animation-play-state: var(--animation-play-state);
+    transition: transform 0.3s ease;
+
+    &.scrolling {
+      animation: scroll var(--animation-duration) linear infinite;
+      animation-play-state: var(--animation-play-state);
+      animation-direction: var(--animation-direction);
+    }
 
     .scroll-item {
       display: inline-block;
-      min-width: 100%;
-      padding: 0 10px;
-      font-size: 14px;
-      color: var(--el-color-primary-light-2) !important;
-      text-align: left;
-      text-align: center;
-
-      :deep(a) {
-        color: #fd4e4e !important;
-        text-decoration: none;
-
-        &:hover {
-          text-decoration: underline;
-        }
-      }
-    }
-  }
-
-  @keyframes scroll {
-    0% {
-      transform: translateX(0);
-    }
-
-    100% {
-      transform: translateX(-100%);
-    }
-  }
-
-  // 添加类型样式
-  &.text-scroll--default {
-    background-color: var(--el-color-primary-light-9) !important;
-    border-color: var(--el-color-primary);
-
-    .right-icon,
-    .left-icon i {
-      color: var(--el-color-primary) !important;
-    }
-
-    .scroll-item {
-      color: var(--el-color-primary) !important;
-    }
-  }
-
-  &.text-scroll--success {
-    background-color: var(--el-color-success-light-9) !important;
-    border-color: var(--el-color-success);
-
-    .left-icon {
-      background-color: var(--el-color-success-light-9) !important;
-
-      i {
-        color: var(--el-color-success);
-      }
-    }
-
-    .scroll-item {
-      color: var(--el-color-success) !important;
-    }
-  }
-
-  &.text-scroll--warning {
-    background-color: var(--el-color-warning-light-9) !important;
-    border-color: var(--el-color-warning);
-
-    .left-icon {
-      background-color: var(--el-color-warning-light-9) !important;
-
-      i {
-        color: var(--el-color-warning);
-      }
-    }
-
-    .scroll-item {
-      color: var(--el-color-warning) !important;
-    }
-  }
-
-  &.text-scroll--danger {
-    background-color: var(--el-color-danger-light-9) !important;
-    border-color: var(--el-color-danger);
-
-    .left-icon {
-      background-color: var(--el-color-danger-light-9) !important;
-
-      i {
-        color: var(--el-color-danger);
-      }
-    }
-
-    .scroll-item {
-      color: var(--el-color-danger) !important;
-    }
-  }
-
-  &.text-scroll--info {
-    background-color: var(--el-color-info-light-9) !important;
-    border-color: var(--el-color-info);
-
-    .left-icon {
-      background-color: var(--el-color-info-light-9) !important;
-
-      i {
-        color: var(--el-color-info);
-      }
-    }
-
-    .scroll-item {
-      color: var(--el-color-info) !important;
+      padding: 0 20px;
     }
   }
 }
 
-// 添加打字机效果的光标样式
-.text-scroll-content .scroll-item {
-  &::after {
-    content: "";
-    opacity: 0;
-    animation: none;
+@keyframes scroll {
+  0% {
+    transform: translateX(0);
   }
-}
-
-// 仅在启用打字机效果时显示光标
-.text-scroll-container[typewriter] .text-scroll-content .scroll-item::after {
-  content: "|";
-  opacity: 0;
-  animation: cursor 1s infinite;
-}
-
-@keyframes cursor {
-  0%,
   100% {
-    opacity: 0;
+    transform: translateX(-50%);
   }
+}
 
-  50% {
-    opacity: 1;
-  }
+/* 预设样式 */
+.text-scroll--default {
+  color: var(--el-text-color-primary);
+  background-color: var(--el-color-primary-light-9) !important;
+  border-color: var(--el-color-primary);
+}
+
+.text-scroll--success {
+  color: var(--el-color-success);
+  background-color: var(--el-color-success-light-9) !important;
+  border-color: var(--el-color-success);
+}
+
+.text-scroll--warning {
+  color: var(--el-color-warning);
+  background-color: var(--el-color-warning-light-9) !important;
+  border-color: var(--el-color-warning);
+}
+
+.text-scroll--danger {
+  color: var(--el-color-danger);
+  background-color: var(--el-color-danger-light-9) !important;
+  border-color: var(--el-color-danger);
+}
+
+.text-scroll--info {
+  color: var(--el-color-info);
+  background-color: var(--el-color-info-light-9) !important;
+  border-color: var(--el-color-info);
 }
 </style>

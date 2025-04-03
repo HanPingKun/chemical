@@ -13,7 +13,7 @@
   <div ref="chartRef" :style="{ width, height }"></div>
 </template>
 
-<script setup lang="ts">
+<script setup>
 // 引入 echarts 核心模块，核心模块提供了 echarts 使用必须要的接口。
 import * as echarts from "echarts/core";
 // 引入柱状、折线和饼图常用图表
@@ -36,14 +36,23 @@ echarts.use([
   LegendComponent,
 ]);
 
-const props = defineProps<{
-  options: echarts.EChartsCoreOption;
-  width?: string;
-  height?: string;
-}>();
+const props = defineProps({
+  options: {
+    type: Object,
+    required: true
+  },
+  width: {
+    type: String,
+    default: '100%'
+  },
+  height: {
+    type: String,
+    default: '300px'
+  }
+});
 
-const chartRef = ref<HTMLDivElement | null>(null);
-let chartInstance: echarts.ECharts | null = null;
+const chartRef = ref(null);
+let chartInstance = null;
 
 // 初始化图表
 const initChart = () => {

@@ -23,9 +23,8 @@
   </el-upload>
 </template>
 
-<script setup lang="ts">
-import { UploadRawFile, UploadRequestOptions } from "element-plus";
-import FileAPI, { FileInfo } from "@/api/file.api";
+<script setup>
+import FileAPI from "@/api/file.api";
 
 const props = defineProps({
   /**
@@ -82,7 +81,7 @@ const modelValue = defineModel("modelValue", {
 /**
  * 限制用户上传文件的格式和大小
  */
-function handleBeforeUpload(file: UploadRawFile) {
+function handleBeforeUpload(file) {
   // 校验文件类型：虽然 accept 属性限制了用户在文件选择器中可选的文件类型，但仍需在上传时再次校验文件实际类型，确保符合 accept 的规则
   const acceptTypes = props.accept.split(",").map((type) => type.trim());
 
@@ -116,7 +115,7 @@ function handleBeforeUpload(file: UploadRawFile) {
 /*
  * 上传图片
  */
-function handleUpload(options: UploadRequestOptions) {
+function handleUpload(options) {
   return new Promise((resolve, reject) => {
     const file = options.file;
 
@@ -150,7 +149,7 @@ function handleDelete() {
  *
  * @param fileInfo 上传成功后的文件信息
  */
-const onSuccess = (fileInfo: FileInfo) => {
+const onSuccess = (fileInfo) => {
   ElMessage.success("上传成功");
   modelValue.value = fileInfo.url;
 };
@@ -158,7 +157,7 @@ const onSuccess = (fileInfo: FileInfo) => {
 /**
  * 上传失败回调
  */
-const onError = (error: any) => {
+const onError = (error) => {
   console.log("onError");
   ElMessage.error("上传失败: " + error.message);
 };

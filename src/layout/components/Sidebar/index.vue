@@ -20,7 +20,7 @@
   </div>
 </template>
 
-<script setup lang="ts">
+<script setup>
 import { LayoutMode } from "@/enums/settings/layout.enum";
 import { useSettingsStore, usePermissionStore, useAppStore } from "@/store";
 

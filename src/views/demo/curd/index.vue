@@ -89,11 +89,10 @@
   </div>
 </template>
 
-<script setup lang="ts">
+<script setup>
 import UserAPI from "@/api/system/user.api";
 import DeptAPI from "@/api/system/dept.api";
 import RoleAPI from "@/api/system/role.api";
-import type { IObject, IOperatData } from "@/components/CURD/types";
 import usePage from "@/components/CURD/usePage";
 import addModalConfig from "./config/add";
 import contentConfig from "./config/content";
@@ -120,31 +119,31 @@ const {
 async function handleAddClick() {
   addModalRef.value?.setModalVisible();
   // 加载部门下拉数据源
-  addModalConfig.formItems[2]!.attrs!.data = await DeptAPI.getOptions();
+  addModalConfig.formItems[2].attrs.data = await DeptAPI.getOptions();
   // 加载角色下拉数据源
-  addModalConfig.formItems[4]!.options = await RoleAPI.getOptions();
+  addModalConfig.formItems[4].options = await RoleAPI.getOptions();
 }
 // 编辑
-async function handleEditClick(row: IObject) {
+async function handleEditClick(row) {
   editModalRef.value?.handleDisabled(false);
   editModalRef.value?.setModalVisible();
   // 加载部门下拉数据源
-  editModalConfig.formItems[2]!.attrs!.data = await DeptAPI.getOptions();
+  editModalConfig.formItems[2].attrs.data = await DeptAPI.getOptions();
   // 加载角色下拉数据源
-  editModalConfig.formItems[4]!.options = await RoleAPI.getOptions();
+  editModalConfig.formItems[4].options = await RoleAPI.getOptions();
   // 根据id获取数据进行填充
   const data = await UserAPI.getFormData(row.id);
   editModalRef.value?.setFormData(data);
 }
 // 其他工具栏
-function handleToolbarClick(name: string) {
+function handleToolbarClick(name) {
   console.log(name);
   if (name === "custom1") {
     ElMessage.success("点击了自定义1按钮");
   }
 }
 // 其他操作列
-async function handleOperatClick(data: IOperatData) {
+async function handleOperatClick(data) {
   console.log(data);
   // 重置密码
   if (data.name === "reset_pwd") {
@@ -168,9 +167,9 @@ async function handleOperatClick(data: IOperatData) {
     // 修改抽屉标题
     editModalConfig.drawer = { ...editModalConfig.drawer, title: "用户详情" };
     // 加载部门下拉数据源
-    editModalConfig.formItems[2]!.attrs!.data = await DeptAPI.getOptions();
+    editModalConfig.formItems[2].attrs.data = await DeptAPI.getOptions();
     // 加载角色下拉数据源
-    editModalConfig.formItems[4]!.options = await RoleAPI.getOptions();
+    editModalConfig.formItems[4].options = await RoleAPI.getOptions();
     // 根据id获取数据进行填充
     const formData = await UserAPI.getFormData(data.row.id);
     // 设置表单数据

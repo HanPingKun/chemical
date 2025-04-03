@@ -47,14 +47,13 @@
   </div>
 </template>
 
-<script setup lang="ts">
+<script setup>
 defineOptions({
   name: "SidebarMenuItem",
   inheritAttrs: false,
 });
 
 import path from "path-browserify";
-import { RouteRecordRaw } from "vue-router";
 
 import { isExternal } from "@/utils";
 
@@ -63,7 +62,7 @@ const props = defineProps({
    * 当前路由对象
    */
   item: {
-    type: Object as PropType<RouteRecordRaw>,
+    type: Object,
     required: true,
   },
 
@@ -94,9 +93,9 @@ const onlyOneChild = ref();
  * @param parent 父级路由
  * @returns 是否仅有一个可见子节点
  */
-function hasOneShowingChild(children: RouteRecordRaw[] = [], parent: RouteRecordRaw) {
+function hasOneShowingChild(children = [], parent) {
   // 过滤出可见子节点
-  const showingChildren = children.filter((route: RouteRecordRaw) => {
+  const showingChildren = children.filter((route) => {
     if (!route.meta?.hidden) {
       onlyOneChild.value = route;
       return true;
@@ -124,7 +123,7 @@ function hasOneShowingChild(children: RouteRecordRaw[] = [], parent: RouteRecord
  * @param routePath 路由路径
  * @returns 绝对路径
  */
-function resolvePath(routePath: string) {
+function resolvePath(routePath) {
   if (isExternal(routePath)) return routePath;
   if (isExternal(props.basePath)) return props.basePath;
 

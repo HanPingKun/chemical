@@ -229,27 +229,26 @@
   </template>
 </template>
 
-<script setup lang="ts">
+<script setup>
 import { useThrottleFn } from "@vueuse/core";
-import type { FormInstance, FormRules } from "element-plus";
 import { nextTick, reactive, ref, watch, watchEffect } from "vue";
-import type { IModalConfig, IObject } from "./types";
 
 // 定义接收的属性
-const props = defineProps<{
-  modalConfig: IModalConfig;
-}>();
+const props = defineProps({
+  modalConfig: {
+    type: Object,
+    required: true
+  }
+});
 // 自定义事件
-const emit = defineEmits<{
-  submitClick: [];
-}>();
+const emit = defineEmits(['submitClick']);
 
 const pk = props.modalConfig.pk ?? "id";
 const modalVisible = ref(false);
-const formRef = ref<FormInstance>();
+const formRef = ref();
 const formItems = reactive(props.modalConfig.formItems);
-const formData = reactive<IObject>({});
-const formRules: FormRules = {};
+const formData = reactive({});
+const formRules = {};
 const formDisable = ref(false);
 const prepareFuncs = [];
 for (const item of formItems) {
@@ -287,12 +286,12 @@ for (const item of formItems) {
 prepareFuncs.forEach((func) => func());
 
 // 获取表单数据
-function getFormData(key?: string) {
+function getFormData(key) {
   return key === undefined ? formData : (formData[key] ?? undefined);
 }
 
 // 设置表单值
-function setFormData(data: IObject) {
+function setFormData(data) {
   for (const key in formData) {
     if (Object.prototype.hasOwnProperty.call(formData, key) && key in data) {
       formData[key] = data[key];
@@ -304,12 +303,12 @@ function setFormData(data: IObject) {
 }
 
 // 设置表单项值
-function setFormItemData(key: string, value: any) {
+function setFormItemData(key, value) {
   formData[key] = value;
 }
 
 // 显示modal
-function setModalVisible(data: IObject = {}) {
+function setModalVisible(data = {}) {
   modalVisible.value = true;
   // nextTick解决赋值后重置表单无效问题
   nextTick(() => {
@@ -319,7 +318,7 @@ function setModalVisible(data: IObject = {}) {
 
 // 表单提交
 const handleSubmit = useThrottleFn(() => {
-  formRef.value?.validate((valid: boolean) => {
+  formRef.value?.validate((valid) => {
     if (valid) {
       if (typeof props.modalConfig.beforeSubmit === "function") {
         props.modalConfig.beforeSubmit(formData);
@@ -357,7 +356,7 @@ function handleCloseModal() {
 }
 
 // 禁用表单--用于详情时候用
-function handleDisabled(disable: boolean) {
+function handleDisabled(disable) {
   formDisable.value = disable;
   props.modalConfig.formItems.forEach((item) => {
     if (item) {

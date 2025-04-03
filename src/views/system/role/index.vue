@@ -202,11 +202,11 @@
   </div>
 </template>
 
-<script setup lang="ts">
+<script setup>
 import { useAppStore } from "@/store/modules/app.store";
 import { DeviceEnum } from "@/enums/settings/device.enum";
 
-import RoleAPI, { RolePageVO, RoleForm, RolePageQuery } from "@/api/system/role.api";
+import RoleAPI from "@/api/system/role.api";
 import MenuAPI from "@/api/system/menu.api";
 
 defineOptions({
@@ -221,18 +221,18 @@ const roleFormRef = ref();
 const permTreeRef = ref();
 
 const loading = ref(false);
-const ids = ref<number[]>([]);
+const ids = ref([]);
 const total = ref(0);
 
-const queryParams = reactive<RolePageQuery>({
+const queryParams = reactive({
   pageNum: 1,
   pageSize: 10,
 });
 
 // 角色表格数据
-const roleList = ref<RolePageVO[]>();
+const roleList = ref();
 // 菜单权限下拉
-const menuPermOptions = ref<OptionType[]>([]);
+const menuPermOptions = ref([]);
 
 // 弹窗
 const dialog = reactive({
@@ -243,7 +243,7 @@ const dialog = reactive({
 const drawerSize = computed(() => (appStore.device === DeviceEnum.DESKTOP ? "600px" : "90%"));
 
 // 角色表单
-const formData = reactive<RoleForm>({
+const formData = reactive({
   sort: 1,
   status: 1,
 });
@@ -256,11 +256,7 @@ const rules = reactive({
 });
 
 // 选中的角色
-interface CheckedRole {
-  id?: string;
-  name?: string;
-}
-const checkedRole = ref<CheckedRole>({});
+const checkedRole = ref({});
 const assignPermDialogVisible = ref(false);
 
 const permKeywords = ref("");
@@ -289,12 +285,12 @@ function handleResetQuery() {
 }
 
 // 行复选框选中
-function handleSelectionChange(selection: any) {
-  ids.value = selection.map((item: any) => item.id);
+function handleSelectionChange(selection) {
+  ids.value = selection.map((item) => item.id);
 }
 
 // 打开角色弹窗
-function handleOpenDialog(roleId?: string) {
+function handleOpenDialog(roleId) {
   dialog.visible = true;
   if (roleId) {
     dialog.title = "修改角色";
@@ -308,7 +304,7 @@ function handleOpenDialog(roleId?: string) {
 
 // 提交角色表单
 function handleSubmit() {
-  roleFormRef.value.validate((valid: any) => {
+  roleFormRef.value.validate((valid) => {
     if (valid) {
       loading.value = true;
       const roleId = formData.id;
@@ -346,7 +342,7 @@ function handleCloseDialog() {
 }
 
 // 删除角色
-function handleDelete(roleId?: number) {
+function handleDelete(roleId) {
   const roleIds = [roleId || ids.value].join(",");
   if (!roleIds) {
     ElMessage.warning("请勾选删除项");
@@ -374,7 +370,7 @@ function handleDelete(roleId?: number) {
 }
 
 // 打开分配菜单权限弹窗
-async function handleOpenAssignPermDialog(row: RolePageVO) {
+async function handleOpenAssignPermDialog(row) {
   const roleId = row.id;
   if (roleId) {
     assignPermDialogVisible.value = true;
@@ -390,7 +386,7 @@ async function handleOpenAssignPermDialog(row: RolePageVO) {
     RoleAPI.getRoleMenuIds(roleId)
       .then((data) => {
         const checkedMenuIds = data;
-        checkedMenuIds.forEach((menuId) => permTreeRef.value!.setChecked(menuId, true, false));
+        checkedMenuIds.forEach((menuId) => permTreeRef.value.setChecked(menuId, true, false));
       })
       .finally(() => {
         loading.value = false;
@@ -402,9 +398,9 @@ async function handleOpenAssignPermDialog(row: RolePageVO) {
 function handleAssignPermSubmit() {
   const roleId = checkedRole.value.id;
   if (roleId) {
-    const checkedMenuIds: number[] = permTreeRef
-      .value!.getCheckedNodes(false, true)
-      .map((node: any) => node.value);
+    const checkedMenuIds = permTreeRef
+      .value.getCheckedNodes(false, true)
+      .map((node) => node.value);
 
     loading.value = true;
     RoleAPI.updateRoleMenus(roleId, checkedMenuIds)
@@ -423,7 +419,7 @@ function handleAssignPermSubmit() {
 function togglePermTree() {
   isExpanded.value = !isExpanded.value;
   if (permTreeRef.value) {
-    Object.values(permTreeRef.value.store.nodesMap).forEach((node: any) => {
+    Object.values(permTreeRef.value.store.nodesMap).forEach((node) => {
       if (isExpanded.value) {
         node.expand();
       } else {
@@ -435,21 +431,16 @@ function togglePermTree() {
 
 // 权限筛选
 watch(permKeywords, (val) => {
-  permTreeRef.value!.filter(val);
+  permTreeRef.value.filter(val);
 });
 
-function handlePermFilter(
-  value: string,
-  data: {
-    [key: string]: any;
-  }
-) {
+function handlePermFilter(value, data) {
   if (!value) return true;
   return data.label.includes(value);
 }
 
 // 父子菜单节点是否联动
-function handleparentChildLinkedChange(val: any) {
+function handleparentChildLinkedChange(val) {
   parentChildLinked.value = val;
 }
 

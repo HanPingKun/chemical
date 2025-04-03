@@ -20,7 +20,7 @@
   </el-card>
 </template>
 
-<script setup lang="ts">
+<script setup>
 import DeptAPI from "@/api/system/dept.api";
 const props = defineProps({
   modelValue: {
@@ -29,7 +29,7 @@ const props = defineProps({
   },
 });
 
-const deptList = ref<OptionType[]>(); // 部门列表
+const deptList = ref(); // 部门列表
 const deptTreeRef = ref(); // 部门树
 const deptName = ref(); // 部门名称
 
@@ -49,7 +49,7 @@ watchEffect(
 /**
  * 部门筛选
  */
-function handleFilter(value: string, data: any) {
+function handleFilter(value, data) {
   if (!value) {
     return true;
   }
@@ -57,7 +57,7 @@ function handleFilter(value: string, data: any) {
 }
 
 /** 部门树节点 Click */
-function handleNodeClick(data: { [key: string]: any }) {
+function handleNodeClick(data) {
   deptId.value = data.value;
   emits("node-click");
 }

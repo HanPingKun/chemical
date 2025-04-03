@@ -24,7 +24,7 @@
           <a class="el-upload-list__item-name" @click="handleDownload(file)">
             <el-icon><Document /></el-icon>
             <span class="el-upload-list__item-file-name">{{ file.name }}</span>
-            <span class="el-icon--close" @click.stop="handleRemove(file.url!)">
+            <span class="el-icon--close" @click.stop="handleRemove(file.url)">
               <el-icon><Close /></el-icon>
             </span>
           </a>
@@ -41,17 +41,9 @@
     />
   </div>
 </template>
-<script lang="ts" setup>
-import {
-  UploadRawFile,
-  UploadUserFile,
-  UploadFile,
-  UploadFiles,
-  UploadProgressEvent,
-  UploadRequestOptions,
-} from "element-plus";
 
-import FileAPI, { FileInfo } from "@/api/file.api";
+<script setup>
+import FileAPI from "@/api/file.api";
 
 const props = defineProps({
   /**
@@ -113,12 +105,12 @@ const props = defineProps({
 });
 
 const modelValue = defineModel("modelValue", {
-  type: [Array] as PropType<FileInfo[]>,
+  type: Array,
   required: true,
   default: () => [],
 });
 
-const fileList = ref([] as UploadFile[]);
+const fileList = ref([]);
 
 const showProgress = ref(false);
 const progressPercent = ref(0);
@@ -134,7 +126,7 @@ watch(
         url: item.url,
         status: "success",
         uid: getUid(),
-      } as UploadFile;
+      };
     });
   },
   {
@@ -145,7 +137,7 @@ watch(
 /**
  * 上传前校验
  */
-function handleBeforeUpload(file: UploadRawFile) {
+function handleBeforeUpload(file) {
   // 限制文件大小
   if (file.size > props.maxFileSize * 1024 * 1024) {
     ElMessage.warning("上传文件不能大于" + props.maxFileSize + "M");
@@ -157,7 +149,7 @@ function handleBeforeUpload(file: UploadRawFile) {
 /*
  * 上传文件
  */
-function handleUpload(options: UploadRequestOptions) {
+function handleUpload(options) {
   return new Promise((resolve, reject) => {
     const file = options.file;
 
@@ -184,28 +176,28 @@ function handleUpload(options: UploadRequestOptions) {
  *
  * @param event
  */
-const handleProgress = (event: UploadProgressEvent) => {
+const handleProgress = (event) => {
   progressPercent.value = event.percent;
 };
 
 /**
  * 上传成功
  */
-const handleSuccess = (response: any, uploadFile: UploadFile, files: UploadFiles) => {
+const handleSuccess = (response, uploadFile, files) => {
   ElMessage.success("上传成功");
   //只有当状态为success或者fail，代表文件上传全部完成了，失败也算完成
   if (
-    files.every((file: UploadFile) => {
+    files.every((file) => {
       return file.status === "success" || file.status === "fail";
     })
   ) {
-    let fileInfos = [] as FileInfo[];
-    files.map((file: UploadFile) => {
+    let fileInfos = [];
+    files.map((file) => {
       if (file.status === "success") {
         //只取携带response的才是刚上传的
-        let res = file.response as FileInfo;
+        let res = file.response;
         if (res) {
-          fileInfos.push({ name: res.name, url: res.url } as FileInfo);
+          fileInfos.push({ name: res.name, url: res.url });
         }
       } else {
         //失败上传 从fileList删掉，不展示
@@ -224,7 +216,7 @@ const handleSuccess = (response: any, uploadFile: UploadFile, files: UploadFiles
 /**
  * 上传失败
  */
-const handleError = (_error: any) => {
+const handleError = (_error) => {
   console.error(_error);
   ElMessage.error("上传失败");
 };
@@ -232,7 +224,7 @@ const handleError = (_error: any) => {
 /**
  * 删除文件
  */
-function handleRemove(fileUrl: string) {
+function handleRemove(fileUrl) {
   FileAPI.delete(fileUrl).then(() => {
     modelValue.value = modelValue.value.filter((file) => file.url !== fileUrl);
   });
@@ -241,7 +233,7 @@ function handleRemove(fileUrl: string) {
 /**
  * 下载文件
  */
-function handleDownload(file: UploadUserFile) {
+function handleDownload(file) {
   const { url, name } = file;
   if (url) {
     FileAPI.download(url, name);

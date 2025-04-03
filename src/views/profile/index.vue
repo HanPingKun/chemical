@@ -217,56 +217,70 @@
   </div>
 </template>
 
-<script lang="ts" setup>
-import UserAPI, {
-  UserProfileVO,
-  PasswordChangeForm,
-  MobileUpdateForm,
-  EmailUpdateForm,
-  UserProfileForm,
-} from "@/api/system/user.api";
-
+<script setup>
+import UserAPI from "@/api/system/user.api";
 import FileAPI from "@/api/file.api";
-
 import { Camera } from "@element-plus/icons-vue";
 
-const userProfile = ref<UserProfileVO>({});
+const userProfile = ref({});
 
-const enum DialogType {
-  ACCOUNT = "account",
-  PASSWORD = "password",
-  MOBILE = "mobile",
-  EMAIL = "email",
-}
+const DialogType = {
+  ACCOUNT: "account",
+  PASSWORD: "password",
+  MOBILE: "mobile",
+  EMAIL: "email",
+};
 
 const dialog = reactive({
   visible: false,
   title: "",
-  type: "" as DialogType, // 修改账号资料,修改密码、绑定手机、绑定邮箱
+  type: "", // 修改账号资料,修改密码、绑定手机、绑定邮箱
 });
 
-const userProfileForm = reactive<UserProfileForm>({});
-const passwordChangeForm = reactive<PasswordChangeForm>({});
-const mobileUpdateForm = reactive<MobileUpdateForm>({});
-const emailUpdateForm = reactive<EmailUpdateForm>({});
+const userProfileForm = reactive({});
+const passwordChangeForm = reactive({});
+const mobileUpdateForm = reactive({});
+const emailUpdateForm = reactive({});
+
+const userProfileFormRef = ref();
+const passwordChangeFormRef = ref();
+const mobileBindingFormRef = ref();
+const emailBindingFormRef = ref();
+const fileInput = ref();
 
 const mobileCountdown = ref(0);
-const mobileTimer = ref();
-
 const emailCountdown = ref(0);
-const emailTimer = ref();
 
-// 修改密码校验规则
+// 密码修改表单校验规则
 const passwordChangeRules = {
-  oldPassword: [{ required: true, message: "请输入原密码", trigger: "blur" }],
-  newPassword: [{ required: true, message: "请输入新密码", trigger: "blur" }],
-  confirmPassword: [{ required: true, message: "请再次输入新密码", trigger: "blur" }],
+  oldPassword: [
+    { required: true, message: "请输入原密码", trigger: "blur" },
+    { min: 6, message: "密码长度不能小于6位", trigger: "blur" },
+  ],
+  newPassword: [
+    { required: true, message: "请输入新密码", trigger: "blur" },
+    { min: 6, message: "密码长度不能小于6位", trigger: "blur" },
+  ],
+  confirmPassword: [
+    { required: true, message: "请确认新密码", trigger: "blur" },
+    { min: 6, message: "密码长度不能小于6位", trigger: "blur" },
+    {
+      validator: (rule, value, callback) => {
+        if (value !== passwordChangeForm.newPassword) {
+          callback(new Error("两次输入的密码不一致"));
+        } else {
+          callback();
+        }
+      },
+      trigger: "blur",
+    },
+  ],
 };
 
-// 手机号校验规则
+// 手机绑定表单校验规则
 const mobileBindingRules = {
   mobile: [
-    { required: true, message: "请输入手机号", trigger: "blur" },
+    { required: true, message: "请输入手机号码", trigger: "blur" },
     {
       pattern: /^1[3|4|5|6|7|8|9][0-9]\d{8}$/,
       message: "请输入正确的手机号码",
@@ -276,7 +290,7 @@ const mobileBindingRules = {
   code: [{ required: true, message: "请输入验证码", trigger: "blur" }],
 };
 
-// 邮箱校验规则
+// 邮箱绑定表单校验规则
 const emailBindingRules = {
   email: [
     { required: true, message: "请输入邮箱", trigger: "blur" },
@@ -289,18 +303,21 @@ const emailBindingRules = {
   code: [{ required: true, message: "请输入验证码", trigger: "blur" }],
 };
 
-/**
- * 打开弹窗
- * @param type 弹窗类型 ACCOUNT: 账号资料 PASSWORD: 修改密码 MOBILE: 绑定手机 EMAIL: 绑定邮箱
- */
-const handleOpenDialog = (type: DialogType) => {
+// 获取用户信息
+function getUserProfile() {
+  UserAPI.getProfile().then((data) => {
+    userProfile.value = data;
+  });
+}
+
+// 打开弹窗
+function handleOpenDialog(type) {
   dialog.type = type;
   dialog.visible = true;
+
   switch (type) {
     case DialogType.ACCOUNT:
-      dialog.title = "账号资料";
-      // 初始化表单数据
-      userProfileForm.id = userProfile.value.id;
+      dialog.title = "修改账号资料";
       userProfileForm.nickname = userProfile.value.nickname;
       userProfileForm.gender = userProfile.value.gender;
       break;
@@ -308,148 +325,122 @@ const handleOpenDialog = (type: DialogType) => {
       dialog.title = "修改密码";
       break;
     case DialogType.MOBILE:
-      dialog.title = "绑定手机";
+      dialog.title = userProfile.value.mobile ? "更换手机号码" : "绑定手机号码";
+      mobileUpdateForm.mobile = userProfile.value.mobile;
       break;
     case DialogType.EMAIL:
-      dialog.title = "绑定邮箱";
+      dialog.title = userProfile.value.email ? "更换邮箱" : "绑定邮箱";
+      emailUpdateForm.email = userProfile.value.email;
       break;
   }
-};
+}
 
-/**
- * 发送手机验证码
- */
+// 提交表单
+async function handleSubmit() {
+  try {
+    let valid = false;
+    switch (dialog.type) {
+      case DialogType.ACCOUNT:
+        valid = await userProfileFormRef.value?.validate();
+        if (valid) {
+          await UserAPI.updateProfile(userProfileForm);
+          ElMessage.success("修改成功");
+          getUserProfile();
+          dialog.visible = false;
+        }
+        break;
+      case DialogType.PASSWORD:
+        valid = await passwordChangeFormRef.value?.validate();
+        if (valid) {
+          await UserAPI.updatePassword(passwordChangeForm);
+          ElMessage.success("修改成功");
+          dialog.visible = false;
+        }
+        break;
+      case DialogType.MOBILE:
+        valid = await mobileBindingFormRef.value?.validate();
+        if (valid) {
+          await UserAPI.updateMobile(mobileUpdateForm);
+          ElMessage.success("修改成功");
+          getUserProfile();
+          dialog.visible = false;
+        }
+        break;
+      case DialogType.EMAIL:
+        valid = await emailBindingFormRef.value?.validate();
+        if (valid) {
+          await UserAPI.updateEmail(emailUpdateForm);
+          ElMessage.success("修改成功");
+          getUserProfile();
+          dialog.visible = false;
+        }
+        break;
+    }
+  } catch (error) {
+    console.error("提交失败:", error);
+  }
+}
+
+// 发送手机验证码
 function handleSendMobileCode() {
   if (!mobileUpdateForm.mobile) {
-    ElMessage.error("请输入手机号");
+    ElMessage.warning("请输入手机号码");
     return;
   }
-  // 验证手机号格式
-  const reg = /^1[3-9]\d{9}$/;
-  if (!reg.test(mobileUpdateForm.mobile)) {
-    ElMessage.error("手机号格式不正确");
-    return;
-  }
-  // 发送短信验证码
   UserAPI.sendMobileCode(mobileUpdateForm.mobile).then(() => {
-    ElMessage.success("验证码发送成功");
-
-    // 倒计时 60s 重新发送
+    ElMessage.success("验证码已发送");
     mobileCountdown.value = 60;
-    mobileTimer.value = setInterval(() => {
-      if (mobileCountdown.value > 0) {
-        mobileCountdown.value -= 1;
-      } else {
-        clearInterval(mobileTimer.value!);
+    const timer = setInterval(() => {
+      mobileCountdown.value--;
+      if (mobileCountdown.value <= 0) {
+        clearInterval(timer);
       }
     }, 1000);
   });
 }
 
-/**
- * 发送邮箱验证码
- */
+// 发送邮箱验证码
 function handleSendEmailCode() {
   if (!emailUpdateForm.email) {
-    ElMessage.error("请输入邮箱");
+    ElMessage.warning("请输入邮箱");
     return;
   }
-  // 验证邮箱格式
-  const reg = /\w[-\w.+]*@([A-Za-z0-9][-A-Za-z0-9]+\.)+[A-Za-z]{2,14}/;
-  if (!reg.test(emailUpdateForm.email)) {
-    ElMessage.error("邮箱格式不正确");
-    return;
-  }
-
-  // 发送邮箱验证码
   UserAPI.sendEmailCode(emailUpdateForm.email).then(() => {
-    ElMessage.success("验证码发送成功");
-    // 倒计时 60s 重新发送
+    ElMessage.success("验证码已发送");
     emailCountdown.value = 60;
-    emailTimer.value = setInterval(() => {
-      if (emailCountdown.value > 0) {
-        emailCountdown.value -= 1;
-      } else {
-        clearInterval(emailTimer.value!);
+    const timer = setInterval(() => {
+      emailCountdown.value--;
+      if (emailCountdown.value <= 0) {
+        clearInterval(timer);
       }
     }, 1000);
   });
 }
 
-/**
- * 提交表单
- */
-const handleSubmit = async () => {
-  if (dialog.type === DialogType.ACCOUNT) {
-    UserAPI.updateProfile(userProfileForm).then(() => {
-      ElMessage.success("账号资料修改成功");
-      dialog.visible = false;
-      loadUserProfile();
-    });
-  } else if (dialog.type === DialogType.PASSWORD) {
-    if (passwordChangeForm.newPassword !== passwordChangeForm.confirmPassword) {
-      ElMessage.error("两次输入的密码不一致");
-      return;
-    }
-    UserAPI.changePassword(passwordChangeForm).then(() => {
-      ElMessage.success("密码修改成功");
-      dialog.visible = false;
-    });
-  } else if (dialog.type === DialogType.MOBILE) {
-    UserAPI.bindOrChangeMobile(mobileUpdateForm).then(() => {
-      ElMessage.success("手机号绑定成功");
-      dialog.visible = false;
-      loadUserProfile();
-    });
-  } else if (dialog.type === DialogType.EMAIL) {
-    UserAPI.bindOrChangeEmail(emailUpdateForm).then(() => {
-      ElMessage.success("邮箱绑定成功");
-      dialog.visible = false;
-      loadUserProfile();
-    });
+// 触发文件上传
+function triggerFileUpload() {
+  fileInput.value.click();
+}
+
+// 处理文件上传
+async function handleFileChange(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+
+  try {
+    const formData = new FormData();
+    formData.append("file", file);
+    const data = await FileAPI.uploadFile(formData);
+    await UserAPI.updateAvatar(data.url);
+    ElMessage.success("头像更新成功");
+    getUserProfile();
+  } catch (error) {
+    console.error("上传失败:", error);
   }
-};
+}
 
-const fileInput = ref<HTMLInputElement | null>(null);
-
-const triggerFileUpload = () => {
-  fileInput.value?.click();
-};
-
-const handleFileChange = async (event: Event) => {
-  const target = event.target as HTMLInputElement;
-  const file = target.files ? target.files[0] : null;
-  if (file) {
-    // 调用文件上传API
-    try {
-      const data = await FileAPI.uploadFile(file);
-      // 更新用户头像
-      userProfile.value.avatar = data.url;
-      // 更新用户信息
-      await UserAPI.updateProfile({
-        avatar: data.url,
-      });
-    } catch (error) {
-      console.error("头像上传失败：" + error);
-      ElMessage.error("头像上传失败");
-    }
-  }
-};
-
-/** 加载用户信息 */
-const loadUserProfile = async () => {
-  const data = await UserAPI.getProfile();
-  userProfile.value = data;
-};
-
-onMounted(async () => {
-  if (mobileTimer.value) {
-    clearInterval(mobileTimer.value);
-  }
-  if (emailTimer.value) {
-    clearInterval(emailTimer.value);
-  }
-  await loadUserProfile();
+onMounted(() => {
+  getUserProfile();
 });
 </script>
 

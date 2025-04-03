@@ -60,23 +60,23 @@
   </el-card>
 </template>
 
-<script setup lang="ts">
-import type { IObject, ISearchConfig, ComponentType } from "./types";
+<script setup>
 import { ArrowUp, ArrowDown } from "@element-plus/icons-vue";
 import { ElInput, ElInputNumber, ElInputTag, ElSelect, ElCascader } from "element-plus";
 import { ElTimePicker, ElTimeSelect, ElOption, ElDatePicker, ElTreeSelect } from "element-plus";
-import { type FormInstance } from "element-plus";
 import InputTag from "@/components/InputTag/index.vue";
 
 // 定义接收的属性
-const props = defineProps<{ searchConfig: ISearchConfig }>();
+const props = defineProps({
+  searchConfig: {
+    type: Object,
+    required: true
+  }
+});
 // 自定义事件
-const emit = defineEmits<{
-  queryClick: [queryParams: IObject];
-  resetClick: [queryParams: IObject];
-}>();
+const emit = defineEmits(['queryClick', 'resetClick']);
 // 组件映射表
-const componentMap: Record<ComponentType, Component> = {
+const componentMap = {
   input: markRaw(ElInput),
   select: markRaw(ElSelect),
   cascader: markRaw(ElCascader),
@@ -89,7 +89,7 @@ const componentMap: Record<ComponentType, Component> = {
   "custom-tag": markRaw(InputTag),
 };
 
-const queryFormRef = ref<FormInstance>();
+const queryFormRef = ref();
 // 是否显示
 const visible = ref(true);
 // 响应式的formItems
@@ -103,9 +103,9 @@ const showNumber = computed(() =>
   isExpandable.value ? (props.searchConfig.showNumber ?? 3) : formItems.length
 );
 // 搜索表单数据
-const queryParams = reactive<IObject>({});
+const queryParams = reactive({});
 // 获取tooltip的属性
-const getTooltipProps = (tips: any) => {
+const getTooltipProps = (tips) => {
   return typeof tips === "string" ? { content: tips } : tips;
 };
 

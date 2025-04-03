@@ -128,36 +128,36 @@
   </div>
 </template>
 
-<script setup lang="ts">
-import DictAPI, { DictItemPageQuery, DictItemPageVO, DictItemForm } from "@/api/system/dict.api";
+<script setup>
+import DictAPI from "@/api/system/dict.api";
 
 const route = useRoute();
 
-const dictCode = ref(route.query.dictCode as string);
+const dictCode = ref(route.query.dictCode);
 
 const queryFormRef = ref();
 const dataFormRef = ref();
 
 const loading = ref(false);
-const ids = ref<number[]>([]);
+const ids = ref([]);
 const total = ref(0);
 
-const queryParams = reactive<DictItemPageQuery>({
+const queryParams = reactive({
   pageNum: 1,
   pageSize: 10,
 });
 
-const tableData = ref<DictItemPageVO[]>();
+const tableData = ref();
 
 const dialog = reactive({
   title: "",
   visible: false,
 });
 
-const formData = reactive<DictItemForm>({});
+const formData = reactive({});
 
 const computedRules = computed(() => {
-  const rules: Partial<Record<string, any>> = {
+  const rules = {
     value: [{ required: true, message: "请输入字典值", trigger: "blur" }],
     label: [{ required: true, message: "请输入字典标签", trigger: "blur" }],
   };
@@ -185,12 +185,12 @@ function handleResetQuery() {
 }
 
 // 行选择
-function handleSelectionChange(selection: any) {
-  ids.value = selection.map((item: any) => item.id);
+function handleSelectionChange(selection) {
+  ids.value = selection.map((item) => item.id);
 }
 
 // 打开弹窗
-function handleOpenDialog(row?: DictItemPageVO) {
+function handleOpenDialog(row) {
   dialog.visible = true;
   dialog.title = row ? "编辑字典项" : "新增字典项";
 
@@ -198,32 +198,30 @@ function handleOpenDialog(row?: DictItemPageVO) {
     DictAPI.getDictItemFormData(dictCode.value, row.id).then((data) => {
       Object.assign(formData, data);
     });
+  } else {
+    formData.id = undefined;
+    formData.status = 1;
+    formData.sort = 0;
   }
 }
 
 // 提交表单
 function handleSubmitClick() {
-  dataFormRef.value.validate((isValid: boolean) => {
-    if (isValid) {
-      loading.value = true;
+  dataFormRef.value.validate((valid) => {
+    if (valid) {
       const id = formData.id;
-      formData.dictCode = dictCode.value;
       if (id) {
-        DictAPI.updateDictItem(dictCode.value, id, formData)
-          .then(() => {
-            ElMessage.success("修改成功");
-            handleCloseDialog();
-            handleQuery();
-          })
-          .finally(() => (loading.value = false));
+        DictAPI.updateDictItem(dictCode.value, id, formData).then(() => {
+          ElMessage.success("修改成功");
+          handleCloseDialog();
+          handleResetQuery();
+        });
       } else {
-        DictAPI.createDictItem(dictCode.value, formData)
-          .then(() => {
-            ElMessage.success("新增成功");
-            handleCloseDialog();
-            handleQuery();
-          })
-          .finally(() => (loading.value = false));
+        DictAPI.createDictItem(dictCode.value, formData).then(() => {
+          ElMessage.success("新增成功");
+          handleCloseDialog();
+          handleResetQuery();
+        });
       }
     }
   });
@@ -232,20 +230,13 @@ function handleSubmitClick() {
 // 关闭弹窗
 function handleCloseDialog() {
   dialog.visible = false;
-
   dataFormRef.value.resetFields();
   dataFormRef.value.clearValidate();
-
   formData.id = undefined;
-  formData.sort = 1;
-  formData.status = 1;
 }
-/**
- * 删除字典
- *
- * @param id 字典ID
- */
-function handleDelete(id?: number) {
+
+// 删除字典项
+function handleDelete(id) {
   const itemIds = [id || ids.value].join(",");
   if (!itemIds) {
     ElMessage.warning("请勾选删除项");

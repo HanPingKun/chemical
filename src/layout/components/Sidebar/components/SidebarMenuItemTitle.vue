@@ -13,13 +13,13 @@
   <span v-if="title" class="ml-1">{{ translateRouteTitle(title) }}</span>
 </template>
 
-<script setup lang="ts">
+<script setup>
 import { translateRouteTitle } from "@/utils/i18n";
 
-const props = defineProps<{
-  icon?: string;
-  title?: string;
-}>();
+const props = defineProps({
+  icon: String,
+  title: String
+});
 
 const isElIcon = computed(() => props.icon?.startsWith("el-icon"));
 const iconComponent = computed(() => props.icon?.replace("el-icon-", ""));

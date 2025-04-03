@@ -36,10 +36,8 @@
   </el-menu>
 </template>
 
-<script lang="ts" setup>
+<script setup>
 import path from "path-browserify";
-import type { MenuInstance } from "element-plus";
-import type { RouteRecordRaw } from "vue-router";
 
 import { LayoutMode } from "@/enums/settings/layout.enum";
 import { SidebarColor } from "@/enums/settings/theme.enum";
@@ -50,7 +48,7 @@ import variables from "@/styles/variables.module.scss";
 
 const props = defineProps({
   data: {
-    type: Array<RouteRecordRaw>,
+    type: Array,
     default: () => [],
   },
   basePath: {
@@ -60,13 +58,13 @@ const props = defineProps({
   },
 });
 
-const menuRef = ref<MenuInstance>();
+const menuRef = ref();
 const settingsStore = useSettingsStore();
 const appStore = useAppStore();
 const currentRoute = useRoute();
 
 // 存储已展开的菜单项索引
-const expandedMenuIndexes = ref<string[]>([]);
+const expandedMenuIndexes = ref([]);
 
 // 根据布局模式设置菜单的显示方式：顶部布局使用水平模式，其他使用垂直模式
 const menuMode = computed(() => {
@@ -85,7 +83,7 @@ const sidebarColorScheme = computed(() => settingsStore.sidebarColorScheme);
  * @param routePath 当前路由的相对路径  /user
  * @returns 完整的绝对路径 D://vue3-element-admin/system/user
  */
-function resolveFullPath(routePath: string) {
+function resolveFullPath(routePath) {
   if (isExternal(routePath)) {
     return routePath;
   }
@@ -102,7 +100,7 @@ function resolveFullPath(routePath: string) {
  *
  * @param index 当前展开的菜单项索引
  */
-const onMenuOpen = (index: string) => {
+const onMenuOpen = (index) => {
   expandedMenuIndexes.value.push(index);
 };
 
@@ -111,7 +109,7 @@ const onMenuOpen = (index: string) => {
  *
  * @param index 当前收起的菜单项索引
  */
-const onMenuClose = (index: string) => {
+const onMenuClose = (index) => {
   expandedMenuIndexes.value = expandedMenuIndexes.value.filter((item) => item !== index);
 };
 
@@ -125,7 +123,7 @@ watch(
   () => menuMode.value,
   () => {
     if (menuMode.value === "horizontal") {
-      expandedMenuIndexes.value.forEach((item) => menuRef.value!.close(item));
+      expandedMenuIndexes.value.forEach((item) => menuRef.value.close(item));
     }
   }
 );

@@ -247,84 +247,34 @@
             <!-- 格式化时间 -->
             <template v-else-if="col.templet === 'date'">
               <template v-if="col.prop">
-                {{
-                  scope.row[col.prop]
-                    ? useDateFormat(scope.row[col.prop], col.dateFormat ?? "YYYY-MM-DD HH:mm:ss")
-                        .value
-                    : ""
-                }}
+                {{ formatDate(scope.row[col.prop], col.dateFormat ?? 'YYYY-MM-DD HH:mm:ss') }}
               </template>
             </template>
-            <!-- 列操作栏 -->
-            <template v-else-if="col.templet === 'tool'">
-              <template v-for="item in col.operat ?? ['edit', 'delete']" :key="item">
-                <template v-if="typeof item === 'string'">
-                  <!-- 编辑/删除 -->
-                  <template v-if="item === 'edit' || item === 'delete'">
-                    <el-button
-                      v-hasPerm="[`${contentConfig.pageName}:${item}`]"
-                      :type="item === 'edit' ? 'primary' : 'danger'"
-                      :icon="item"
-                      size="small"
-                      link
-                      @click="
-                        handleOperat({
-                          name: item,
-                          row: scope.row,
-                          column: scope.column,
-                          $index: scope.$index,
-                        })
-                      "
-                    >
-                      {{ item === "edit" ? "编辑" : "删除" }}
-                    </el-button>
-                  </template>
-                </template>
-                <!-- 其他 -->
-                <template v-else-if="typeof item === 'object'">
-                  <el-button
-                    v-if="item.render === undefined || item.render(scope.row)"
-                    v-bind="
-                      item.auth ? { 'v-hasPerm': [`${contentConfig.pageName}:${item.auth}`] } : {}
-                    "
-                    :icon="item.icon"
-                    :type="item.type ?? 'primary'"
-                    size="small"
-                    link
-                    @click="
-                      handleOperat({
-                        name: item.name,
-                        row: scope.row,
-                        column: scope.column,
-                        $index: scope.$index,
-                      })
-                    "
-                  >
-                    {{ item.text }}
-                  </el-button>
-                </template>
-              </template>
+            <!-- 自定义插槽 -->
+            <template v-else-if="col.templet === 'slot'">
+              <slot :name="col.slotName" :row="scope.row" />
             </template>
-            <!-- 自定义 -->
-            <template v-else-if="col.templet === 'custom'">
-              <slot :name="col.slotName ?? col.prop" :prop="col.prop" v-bind="scope" />
+            <!-- 默认显示 -->
+            <template v-else>
+              <template v-if="col.prop">
+                {{ scope.row[col.prop] }}
+              </template>
             </template>
           </template>
         </el-table-column>
       </template>
     </el-table>
     <!-- 分页 -->
-    <template v-if="showPagination">
-      <el-scrollbar>
-        <div class="mt-[12px]">
-          <el-pagination
-            v-bind="pagination"
-            @size-change="handleSizeChange"
-            @current-change="handleCurrentChange"
-          />
-        </div>
-      </el-scrollbar>
-    </template>
+    <el-pagination
+      v-if="contentConfig.pagination"
+      v-model:current-page="currentPage"
+      v-model:page-size="pageSize"
+      :page-sizes="[10, 20, 30, 50]"
+      :total="total"
+      layout="total, sizes, prev, pager, next, jumper"
+      @size-change="handleSizeChange"
+      @current-change="handleCurrentChange"
+    />
     <!-- 导出弹窗 -->
     <el-dialog
       v-model="exportsModalVisible"
@@ -452,36 +402,24 @@
   </el-card>
 </template>
 
-<script setup lang="ts">
+<script setup>
 import { hasAuth } from "@/plugins/permission";
 import { useDateFormat, useThrottleFn } from "@vueuse/core";
-import {
-  genFileId,
-  type FormInstance,
-  type FormRules,
-  type UploadInstance,
-  type UploadRawFile,
-  type UploadUserFile,
-  type TableInstance,
-} from "element-plus";
+import { genFileId } from "element-plus";
 import ExcelJS from "exceljs";
-import { reactive, ref } from "vue";
-import type { IContentConfig, IObject, IOperatData } from "./types";
+import { reactive, ref, computed, watch } from "vue";
+import { formatDate } from "@/utils/formatTime";
+import { usePage } from "./usePage";
 
 // 定义接收的属性
-const props = defineProps<{
-  contentConfig: IContentConfig;
-}>();
+const props = defineProps({
+  contentConfig: {
+    type: Object,
+    required: true
+  }
+});
 // 定义自定义事件
-const emit = defineEmits<{
-  addClick: [];
-  exportClick: [];
-  searchClick: [];
-  toolbarClick: [name: string];
-  editClick: [row: IObject];
-  operatClick: [data: IOperatData];
-  filterChange: [data: IObject];
-}>();
+const emit = defineEmits(['addClick', 'exportClick', 'searchClick', 'toolbarClick', 'editClick', 'operatClick', 'filterChange']);
 
 // 主键
 const pk = props.contentConfig.pk ?? "id";
@@ -513,7 +451,7 @@ const cols = ref(
 // 加载状态
 const loading = ref(false);
 // 列表数据
-const pageData = ref<IObject[]>([]);
+const pageData = ref([]);
 // 显示分页
 const showPagination = props.contentConfig.pagination !== false;
 // 分页配置
@@ -536,13 +474,13 @@ const request = props.contentConfig.request ?? {
   limitName: "pageSize",
 };
 
-const tableRef = ref<TableInstance>();
+const tableRef = ref();
 
 // 行选中
-const selectionData = ref<IObject[]>([]);
+const selectionData = ref([]);
 // 删除ID集合 用于批量删除
-const removeIds = ref<(number | string)[]>([]);
-function handleSelectionChange(selection: any[]) {
+const removeIds = ref([]);
+function handleSelectionChange(selection) {
   selectionData.value = selection;
   removeIds.value = selection.map((item) => item[pk]);
 }
@@ -558,7 +496,7 @@ function handleRefresh(isRestart = false) {
 }
 
 // 删除
-function handleDelete(id?: number | string) {
+function handleDelete(id) {
   const ids = [id || removeIds.value].join(",");
   if (!ids) {
     ElMessage.warning("请勾选删除项");
@@ -585,26 +523,26 @@ function handleDelete(id?: number | string) {
 }
 
 // 导出表单
-const fields: string[] = [];
+const fields = [];
 cols.value.forEach((item) => {
   if (item.prop !== undefined) {
     fields.push(item.prop);
   }
 });
-const enum ExportsOriginEnum {
-  CURRENT = "current",
-  SELECTED = "selected",
-  REMOTE = "remote",
-}
+const ExportsOriginEnum = {
+  CURRENT: "current",
+  SELECTED: "selected",
+  REMOTE: "remote",
+};
 const exportsModalVisible = ref(false);
-const exportsFormRef = ref<FormInstance>();
+const exportsFormRef = ref();
 const exportsFormData = reactive({
   filename: "",
   sheetname: "",
   fields: fields,
   origin: ExportsOriginEnum.CURRENT,
 });
-const exportsFormRules: FormRules = {
+const exportsFormRules = {
   fields: [{ required: true, message: "请选择字段" }],
   origin: [{ required: true, message: "请选择数据源" }],
 };
@@ -614,7 +552,7 @@ function handleOpenExportsModal() {
 }
 // 导出确认
 const handleExportsSubmit = useThrottleFn(() => {
-  exportsFormRef.value?.validate((valid: boolean) => {
+  exportsFormRef.value?.validate((valid) => {
     if (valid) {
       handleExports();
       handleCloseExportsModal();
@@ -637,7 +575,7 @@ function handleExports() {
   const sheetname = exportsFormData.sheetname ? exportsFormData.sheetname : "sheet";
   const workbook = new ExcelJS.Workbook();
   const worksheet = workbook.addWorksheet(sheetname);
-  const columns: Partial<ExcelJS.Column>[] = [];
+  const columns = [];
   cols.value.forEach((col) => {
     if (col.label && col.prop && exportsFormData.fields.includes(col.prop)) {
       columns.push({ header: col.label, key: col.prop });
@@ -673,26 +611,24 @@ function handleExports() {
 
 // 导入表单
 let isFileImport = false;
-const uploadRef = ref<UploadInstance>();
+const uploadRef = ref();
 const importModalVisible = ref(false);
-const importFormRef = ref<FormInstance>();
-const importFormData = reactive<{
-  files: UploadUserFile[];
-}>({
+const importFormRef = ref();
+const importFormData = reactive({
   files: [],
 });
-const importFormRules: FormRules = {
+const importFormRules = {
   files: [{ required: true, message: "请选择文件" }],
 };
 // 打开导入弹窗
-function handleOpenImportModal(isFile: boolean = false) {
+function handleOpenImportModal(isFile = false) {
   importModalVisible.value = true;
   isFileImport = isFile;
 }
 // 覆盖前一个文件
-function handleFileExceed(files: File[]) {
+function handleFileExceed(files) {
   uploadRef.value!.clearFiles();
-  const file = files[0] as UploadRawFile;
+  const file = files[0];
   file.uid = genFileId();
   uploadRef.value!.handleStart(file);
 }
@@ -715,7 +651,7 @@ function handleDownloadTemplate() {
 }
 // 导入确认
 const handleImportSubmit = useThrottleFn(() => {
-  importFormRef.value?.validate((valid: boolean) => {
+  importFormRef.value?.validate((valid) => {
     if (valid) {
       if (isFileImport) {
         handleImport();
@@ -740,7 +676,7 @@ function handleImport() {
     ElMessage.error("未配置importAction");
     return;
   }
-  importAction(importFormData.files[0].raw as File).then(() => {
+  importAction(importFormData.files[0].raw).then(() => {
     ElMessage.success("导入数据成功");
     handleCloseImportModal();
     handleRefresh(true);
@@ -754,7 +690,7 @@ function handleImports() {
     return;
   }
   // 获取选择的文件
-  const file = importFormData.files[0].raw as File;
+  const file = importFormData.files[0].raw;
   // 创建Workbook实例
   const workbook = new ExcelJS.Workbook();
   // 使用FileReader对象来读取文件内容
@@ -763,7 +699,7 @@ function handleImports() {
   fileReader.readAsArrayBuffer(file);
   fileReader.onload = (ev) => {
     if (ev.target !== null && ev.target.result !== null) {
-      const result = ev.target.result as ArrayBuffer;
+      const result = ev.target.result;
       // 从 buffer中加载数据解析
       workbook.xlsx
         .load(result)
@@ -774,13 +710,13 @@ function handleImports() {
           const worksheet = workbook.getWorksheet(1);
           if (worksheet) {
             // 获取第一行的标题
-            const fields: any[] = [];
+            const fields = [];
             worksheet.getRow(1).eachCell((cell) => {
               fields.push(cell.value);
             });
             // 遍历工作表的每一行（从第二行开始，因为第一行通常是标题行）
             for (let rowNumber = 2; rowNumber <= worksheet.rowCount; rowNumber++) {
-              const rowData: IObject = {};
+              const rowData = {};
               const row = worksheet.getRow(rowNumber);
               // 遍历当前行的每个单元格
               row.eachCell((cell, colNumber) => {
@@ -809,7 +745,7 @@ function handleImports() {
 }
 
 // 操作栏
-function handleToolbar(name: string) {
+function handleToolbar(name) {
   switch (name) {
     case "refresh":
       handleRefresh();
@@ -842,7 +778,7 @@ function handleToolbar(name: string) {
 }
 
 // 操作列
-function handleOperat(data: IOperatData) {
+function handleOperat(data) {
   switch (data.name) {
     case "edit":
       emit("editClick", data.row);
@@ -857,7 +793,7 @@ function handleOperat(data: IOperatData) {
 }
 
 // 属性修改
-function handleModify(field: string, value: boolean | string | number, row: Record<string, any>) {
+function handleModify(field, value, row) {
   if (props.contentConfig.modifyAction) {
     props.contentConfig.modifyAction({
       [pk]: row[pk],
@@ -870,19 +806,19 @@ function handleModify(field: string, value: boolean | string | number, row: Reco
 }
 
 // 分页切换
-function handleSizeChange(value: number) {
+function handleSizeChange(value) {
   pagination.pageSize = value;
   handleRefresh();
 }
-function handleCurrentChange(value: number) {
+function handleCurrentChange(value) {
   pagination.currentPage = value;
   handleRefresh();
 }
 
 // 远程数据筛选
-let filterParams: IObject = {};
-function handleFilterChange(newFilters: any) {
-  const filters: IObject = {};
+let filterParams = {};
+function handleFilterChange(newFilters) {
+  const filters = {};
   for (const key in newFilters) {
     const col = cols.value.find((col) => {
       return col.columnKey === key || col["column-key"] === key;
@@ -904,7 +840,7 @@ function getFilterParams() {
 
 // 获取分页数据
 let lastFormData = {};
-function fetchPageData(formData: IObject = {}, isRestart = false) {
+function fetchPageData(formData = {}, isRestart = false) {
   loading.value = true;
   // 上一次搜索条件
   lastFormData = formData;
@@ -940,7 +876,7 @@ function fetchPageData(formData: IObject = {}, isRestart = false) {
 fetchPageData();
 
 // 导出Excel
-function exportPageData(formData: IObject = {}) {
+function exportPageData(formData = {}) {
   if (props.contentConfig.exportAction) {
     props.contentConfig.exportAction(formData).then((response) => {
       const fileData = response.data;
@@ -955,7 +891,7 @@ function exportPageData(formData: IObject = {}) {
 }
 
 // 浏览器保存文件
-function saveXlsx(fileData: any, fileName: string) {
+function saveXlsx(fileData, fileName) {
   const fileType =
     "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=utf-8";
 

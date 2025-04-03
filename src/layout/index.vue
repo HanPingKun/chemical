@@ -44,7 +44,7 @@
   </div>
 </template>
 
-<script setup lang="ts">
+<script setup>
 // 状态管理
 import { useAppStore, useSettingsStore, usePermissionStore } from "@/store";
 
@@ -77,7 +77,7 @@ const mixedLayoutLeftRoutes = computed(() => permissionStore.mixedLayoutLeftRout
 // 监听顶部菜单激活路径变化，更新混合布局左侧菜单路由
 watch(
   () => activeTopMenuPath.value,
-  (newVal: string) => {
+  (newVal) => {
     permissionStore.setMixedLayoutLeftRoutes(newVal);
   },
   { deep: true, immediate: true }

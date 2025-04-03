@@ -80,20 +80,29 @@
   </el-form>
 </template>
 
-<script setup lang="ts">
-import type { FormInstance, FormRules } from "element-plus";
+<script setup>
 import { reactive, ref, watch, watchEffect } from "vue";
-import { IObject, IPageForm } from "./types";
 
 // 定义接收的属性
-const props = withDefaults(defineProps<IPageForm>(), {
-  pk: "id",
+const props = defineProps({
+  formItems: {
+    type: Array,
+    required: true
+  },
+  form: {
+    type: Object,
+    default: () => ({})
+  },
+  pk: {
+    type: String,
+    default: "id"
+  }
 });
 
-const formRef = ref<FormInstance>();
+const formRef = ref();
 const formItems = reactive(props.formItems);
-const formData = reactive<IObject>({});
-const formRules: FormRules = {};
+const formData = reactive({});
+const formRules = {};
 const prepareFuncs = [];
 for (const item of formItems) {
   item.initFn && item.initFn(item);
@@ -130,12 +139,12 @@ for (const item of formItems) {
 prepareFuncs.forEach((func) => func());
 
 // 获取表单数据
-function getFormData(key?: string) {
+function getFormData(key) {
   return key === undefined ? formData : (formData[key] ?? undefined);
 }
 
 // 设置表单值
-function setFormData(data: IObject) {
+function setFormData(data) {
   for (const key in formData) {
     if (Object.prototype.hasOwnProperty.call(formData, key) && key in data) {
       formData[key] = data[key];
@@ -147,7 +156,7 @@ function setFormData(data: IObject) {
 }
 
 // 设置表单项值
-function setFormItemData(key: string, value: any) {
+function setFormItemData(key, value) {
   formData[key] = value;
 }
 

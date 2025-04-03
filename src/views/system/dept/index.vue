@@ -152,29 +152,29 @@
   </div>
 </template>
 
-<script setup lang="ts">
+<script setup>
 defineOptions({
   name: "Dept",
   inheritAttrs: false,
 });
 
-import DeptAPI, { DeptVO, DeptForm, DeptQuery } from "@/api/system/dept.api";
+import DeptAPI from "@/api/system/dept.api";
 
 const queryFormRef = ref();
 const deptFormRef = ref();
 
 const loading = ref(false);
-const selectIds = ref<number[]>([]);
-const queryParams = reactive<DeptQuery>({});
+const selectIds = ref([]);
+const queryParams = reactive({});
 
 const dialog = reactive({
   title: "",
   visible: false,
 });
 
-const deptList = ref<DeptVO[]>();
-const deptOptions = ref<OptionType[]>();
-const formData = reactive<DeptForm>({
+const deptList = ref();
+const deptOptions = ref();
+const formData = reactive({
   status: 1,
   parentId: "0",
   sort: 1,
@@ -203,8 +203,8 @@ function handleResetQuery() {
 }
 
 // 处理选中项变化
-function handleSelectionChange(selection: any) {
-  selectIds.value = selection.map((item: any) => item.id);
+function handleSelectionChange(selection) {
+  selectIds.value = selection.map((item) => item.id);
 }
 
 /**
@@ -213,7 +213,7 @@ function handleSelectionChange(selection: any) {
  * @param parentId 父部门ID
  * @param deptId 部门ID
  */
-async function handleOpenDialog(parentId?: string, deptId?: string) {
+async function handleOpenDialog(parentId, deptId) {
   // 加载部门下拉数据
   const data = await DeptAPI.getOptions();
   deptOptions.value = [
@@ -238,7 +238,7 @@ async function handleOpenDialog(parentId?: string, deptId?: string) {
 
 // 提交部门表单
 function handleSubmit() {
-  deptFormRef.value.validate((valid: any) => {
+  deptFormRef.value.validate((valid) => {
     if (valid) {
       loading.value = true;
       const deptId = formData.id;
@@ -264,7 +264,7 @@ function handleSubmit() {
 }
 
 // 删除部门
-function handleDelete(deptId?: number) {
+function handleDelete(deptId) {
   const deptIds = [deptId || selectIds.value].join(",");
 
   if (!deptIds) {

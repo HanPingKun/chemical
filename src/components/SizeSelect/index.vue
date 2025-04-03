@@ -21,7 +21,7 @@
   </el-tooltip>
 </template>
 
-<script setup lang="ts">
+<script setup>
 import { ComponentSize } from "@/enums/settings/layout.enum";
 import { useAppStore } from "@/store/modules/app.store";
 
@@ -35,7 +35,7 @@ const sizeOptions = computed(() => {
 });
 
 const appStore = useAppStore();
-function handleSizeChange(size: string) {
+function handleSizeChange(size) {
   appStore.changeSize(size);
   ElMessage.success(t("sizeSelect.message.success"));
 }

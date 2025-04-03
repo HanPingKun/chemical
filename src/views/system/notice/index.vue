@@ -248,35 +248,30 @@
   </div>
 </template>
 
-<script setup lang="ts">
+<script setup>
 defineOptions({
   name: "Notice",
   inheritAttrs: false,
 });
 
-import NoticeAPI, {
-  NoticePageVO,
-  NoticeForm,
-  NoticePageQuery,
-  NoticeDetailVO,
-} from "@/api/system/notice.api";
+import NoticeAPI from "@/api/system/notice.api";
 import UserAPI from "@/api/system/user.api";
 
 const queryFormRef = ref();
 const dataFormRef = ref();
 
 const loading = ref(false);
-const selectIds = ref<number[]>([]);
+const selectIds = ref([]);
 const total = ref(0);
 
-const queryParams = reactive<NoticePageQuery>({
+const queryParams = reactive({
   pageNum: 1,
   pageSize: 10,
 });
 
-const userOptions = ref<OptionType[]>([]);
+const userOptions = ref([]);
 // 通知公告表格数据
-const pageData = ref<NoticePageVO[]>([]);
+const pageData = ref([]);
 
 // 弹窗
 const dialog = reactive({
@@ -285,7 +280,7 @@ const dialog = reactive({
 });
 
 // 通知公告表单数据
-const formData = reactive<NoticeForm>({
+const formData = reactive({
   level: "L", // 默认优先级为低
   targetType: 1, // 默认目标类型为全体
 });
@@ -298,7 +293,7 @@ const rules = reactive({
       required: true,
       message: "请输入通知内容",
       trigger: "blur",
-      validator: (rule: any, value: string, callback: any) => {
+      validator: (rule, value, callback) => {
         if (!value.replace(/<[^>]+>/g, "").trim()) {
           callback(new Error("请输入通知内容"));
         } else {
@@ -313,7 +308,7 @@ const rules = reactive({
 const detailDialog = reactive({
   visible: false,
 });
-const currentNotice = ref<NoticeDetailVO>({});
+const currentNotice = ref({});
 
 // 查询通知公告
 function handleQuery() {
@@ -330,18 +325,18 @@ function handleQuery() {
 
 // 重置查询
 function handleResetQuery() {
-  queryFormRef.value!.resetFields();
+  queryFormRef.value.resetFields();
   queryParams.pageNum = 1;
   handleQuery();
 }
 
 // 行复选框选中项变化
-function handleSelectionChange(selection: any) {
-  selectIds.value = selection.map((item: any) => item.id);
+function handleSelectionChange(selection) {
+  selectIds.value = selection.map((item) => item.id);
 }
 
 // 打开通知公告弹窗
-function handleOpenDialog(id?: string) {
+function handleOpenDialog(id) {
   UserAPI.getOptions().then((data) => {
     userOptions.value = data;
   });
@@ -359,7 +354,7 @@ function handleOpenDialog(id?: string) {
 }
 
 // 发布通知公告
-function handlePublish(id: string) {
+function handlePublish(id) {
   NoticeAPI.publish(id).then(() => {
     ElMessage.success("发布成功");
     handleQuery();
@@ -367,7 +362,7 @@ function handlePublish(id: string) {
 }
 
 // 撤回通知公告
-function handleRevoke(id: string) {
+function handleRevoke(id) {
   NoticeAPI.revoke(id).then(() => {
     ElMessage.success("撤回成功");
     handleQuery();
@@ -376,7 +371,7 @@ function handleRevoke(id: string) {
 
 // 通知公告表单提交
 function handleSubmit() {
-  dataFormRef.value.validate((valid: any) => {
+  dataFormRef.value.validate((valid) => {
     if (valid) {
       loading.value = true;
       const id = formData.id;
@@ -416,7 +411,7 @@ function handleCloseDialog() {
 }
 
 // 删除通知公告
-function handleDelete(id?: number) {
+function handleDelete(id) {
   const deleteIds = [id || selectIds.value].join(",");
   if (!deleteIds) {
     ElMessage.warning("请勾选删除项");
@@ -447,7 +442,7 @@ const closeDetailDialog = () => {
   detailDialog.visible = false;
 };
 
-const openDetailDialog = async (id: string) => {
+const openDetailDialog = async (id) => {
   const noticeDetail = await NoticeAPI.getDetail(id);
   currentNotice.value = noticeDetail;
   detailDialog.visible = true;

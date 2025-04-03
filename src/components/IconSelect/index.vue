@@ -80,7 +80,7 @@
   </div>
 </template>
 
-<script setup lang="ts">
+<script setup>
 import * as ElementPlusIconsVue from "@element-plus/icons-vue";
 
 const props = defineProps({
@@ -101,8 +101,8 @@ const popoverContentRef = ref();
 const popoverVisible = ref(false);
 const activeTab = ref("svg");
 
-const svgIcons = ref<string[]>([]);
-const elementIcons = ref<string[]>(Object.keys(ElementPlusIconsVue));
+const svgIcons = ref([]);
+const elementIcons = ref(Object.keys(ElementPlusIconsVue));
 const selectedIcon = defineModel("modelValue", {
   type: String,
   required: true,
@@ -110,8 +110,8 @@ const selectedIcon = defineModel("modelValue", {
 });
 
 const filterText = ref("");
-const filteredSvgIcons = ref<string[]>([]);
-const filteredElementIcons = ref<string[]>(elementIcons.value);
+const filteredSvgIcons = ref([]);
+const filteredElementIcons = ref(elementIcons.value);
 const isElementIcon = computed(() => {
   return selectedIcon.value && selectedIcon.value.startsWith("el-icon");
 });
@@ -125,7 +125,7 @@ function loadIcons() {
   filteredSvgIcons.value = svgIcons.value;
 }
 
-function handleTabClick(tabPane: any) {
+function handleTabClick(tabPane) {
   activeTab.value = tabPane.props.name;
   filterIcons();
 }
@@ -144,7 +144,7 @@ function filterIcons() {
   }
 }
 
-function selectIcon(icon: string) {
+function selectIcon(icon) {
   const iconName = activeTab.value === "element" ? "el-icon-" + icon : icon;
   emit("update:modelValue", iconName);
   popoverVisible.value = false;

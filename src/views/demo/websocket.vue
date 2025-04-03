@@ -96,7 +96,7 @@
   </div>
 </template>
 
-<script setup lang="ts">
+<script setup>
 import { useStomp } from "@/hooks/useStomp";
 import { useUserStoreHook } from "@/store/modules/user.store";
 
@@ -104,12 +104,7 @@ const userStore = useUserStoreHook();
 // 用于手动调整 WebSocket 地址
 const socketEndpoint = ref(import.meta.env.VITE_APP_WS_ENDPOINT);
 // 同步连接状态
-interface MessageType {
-  type?: string;
-  sender?: string;
-  content: string;
-}
-const messages = ref<MessageType[]>([]);
+const messages = ref([]);
 // 广播消息内容
 const topicMessage = ref("亲爱的朋友们，系统已恢复最新状态。");
 // 点对点消息内容（默认示例）
@@ -133,7 +128,7 @@ watch(
         });
       });
       subscribe("/user/queue/greeting", (res) => {
-        const messageData = JSON.parse(res.body) as MessageType;
+        const messageData = JSON.parse(res.body);
         messages.value.push({
           sender: messageData.sender,
           content: messageData.content,

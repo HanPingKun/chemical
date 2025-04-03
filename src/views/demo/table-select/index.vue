@@ -1,29 +1,17 @@
 <!-- 列表选择器示例 -->
-<script setup lang="ts">
+<script setup>
 import selectConfig from "./config/select";
 import { useDictStore } from "@/store";
 const dictStore = useDictStore();
-interface IUser {
-  id: string;
-  username: string;
-  nickname: string;
-  mobile: string;
-  gender: string;
-  avatar: string;
-  email: string | null;
-  status: number;
-  deptName: string;
-  roleNames: string;
-  createTime: string;
-}
-const selectedUser = ref<IUser>();
-function handleConfirm(data: IUser[]) {
+
+const selectedUser = ref();
+function handleConfirm(data) {
   selectedUser.value = data[0];
 }
 const text = computed(() => {
   // 获取字典数据
   const dictData = dictStore.getDictItems("gender");
-  const genderLabel = dictData.find((item: any) => item.value == selectedUser.value?.gender)?.label;
+  const genderLabel = dictData.find((item) => item.value == selectedUser.value?.gender)?.label;
   return selectedUser.value
     ? `${selectedUser.value.username} - ${genderLabel} - ${selectedUser.value.deptName}`
     : "";

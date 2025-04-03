@@ -88,8 +88,8 @@
   </div>
 </template>
 
-<script lang="ts" setup>
-import { ElMessage, type UploadUserFile } from "element-plus";
+<script setup>
+import { ElMessage } from "element-plus";
 import UserAPI from "@/api/system/user.api";
 import { ResultEnum } from "@/enums/api/result.enum";
 
@@ -101,16 +101,14 @@ const visible = defineModel("modelValue", {
 });
 
 const resultVisible = ref(false);
-const resultData = ref<string[]>([]);
+const resultData = ref([]);
 const invalidCount = ref(0);
 const validCount = ref(0);
 
 const importFormRef = ref(null);
 const uploadRef = ref(null);
 
-const importFormData = reactive<{
-  files: UploadUserFile[];
-}>({
+const importFormData = reactive({
   files: [],
 });
 
@@ -134,7 +132,7 @@ const handleFileExceed = () => {
 
 // 下载导入模板
 const handleDownloadTemplate = () => {
-  UserAPI.downloadTemplate().then((response: any) => {
+  UserAPI.downloadTemplate().then((response) => {
     const fileData = response.data;
     const fileName = decodeURI(response.headers["content-disposition"].split(";")[1].split("=")[1]);
     const fileType =
@@ -163,7 +161,7 @@ const handleUpload = async () => {
   }
 
   try {
-    const result = await UserAPI.import("1", importFormData.files[0].raw as File);
+    const result = await UserAPI.import("1", importFormData.files[0].raw);
     if (result.code === ResultEnum.SUCCESS && result.invalidCount === 0) {
       ElMessage.success("导入成功，导入数据：" + result.validCount + "条");
       emit("import-success");
@@ -175,7 +173,7 @@ const handleUpload = async () => {
       invalidCount.value = result.invalidCount;
       validCount.value = result.validCount;
     }
-  } catch (error: any) {
+  } catch (error) {
     console.error(error);
     ElMessage.error("上传失败：" + error);
   }

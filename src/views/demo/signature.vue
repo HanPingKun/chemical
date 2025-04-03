@@ -1,25 +1,25 @@
-<script setup lang="ts">
+<script setup>
 import FileAPI from "@/api/file.api";
 
 const imgUrl = ref("");
 const canvas = ref();
-let ctx: CanvasRenderingContext2D;
+let ctx;
 
 // 正在绘制中，用来控制 move 和 end 事件
 let painting = false;
 
 // 获取触发点相对被触发dom的左、上角距离
-const getOffset = (event: MouseEvent | TouchEvent) => {
-  let offset: [number, number];
-  if ((event as MouseEvent).offsetX) {
+const getOffset = (event) => {
+  let offset;
+  if (event.offsetX) {
     // pc端
-    const { offsetX, offsetY } = event as MouseEvent;
+    const { offsetX, offsetY } = event;
     offset = [offsetX, offsetY];
   } else {
     // 移动端
     const { top, left } = canvas.value.getBoundingClientRect();
-    const offsetX = (event as TouchEvent).touches[0].clientX - left;
-    const offsetY = (event as TouchEvent).touches[0].clientY - top;
+    const offsetX = event.touches[0].clientX - left;
+    const offsetY = event.touches[0].clientY - top;
     offset = [offsetX, offsetY];
   }
 
@@ -31,12 +31,12 @@ let startX = 0,
   startY = 0;
 
 // 鼠标/触摸 按下时，保存 触发点相对被触发dom的左、上 距离
-const onEventStart = (event: MouseEvent | TouchEvent) => {
+const onEventStart = (event) => {
   [startX, startY] = getOffset(event);
   painting = true;
 };
 
-const onEventMove = (event: MouseEvent | TouchEvent) => {
+const onEventMove = (event) => {
   if (painting) {
     // 鼠标/触摸 移动时，保存 移动点相对 被触发dom的左、上 距离
     const [endX, endY] = getOffset(event);
@@ -55,7 +55,7 @@ const onEventEnd = () => {
 };
 
 onMounted(() => {
-  ctx = canvas.value.getContext("2d") as CanvasRenderingContext2D;
+  ctx = canvas.value.getContext("2d");
 });
 const handleToFile = async () => {
   if (isCanvasBlank(canvas.value)) {
@@ -75,7 +75,7 @@ const handleToFile = async () => {
 const handleClearSign = () => {
   ctx.clearRect(0, 0, canvas.value.width, canvas.value.height);
 };
-const isCanvasBlank = (canvas: HTMLCanvasElement) => {
+const isCanvasBlank = (canvas) => {
   const blank = document.createElement("canvas"); //系统获取一个空canvas对象
   blank.width = canvas.width;
   blank.height = canvas.height;
@@ -100,8 +100,8 @@ const handleSaveImg = () => {
   el.dispatchEvent(event);
 };
 // 转为file格式，可传递给后端
-const dataURLtoFile = (dataurl: string, filename: string) => {
-  const arr: string[] = dataurl.split(",");
+const dataURLtoFile = (dataurl, filename) => {
+  const arr = dataurl.split(",");
   if (!arr.length) return;
 
   const mime = arr[0].match(/:(.*?);/);
@@ -116,13 +116,7 @@ const dataURLtoFile = (dataurl: string, filename: string) => {
   }
 };
 // canvas 画图
-function paint(
-  startX: number,
-  startY: number,
-  endX: number,
-  endY: number,
-  ctx: CanvasRenderingContext2D
-) {
+function paint(startX, startY, endX, endY, ctx) {
   ctx.beginPath();
   ctx.globalAlpha = 1;
   ctx.lineWidth = 2;

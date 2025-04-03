@@ -18,7 +18,7 @@
   </div>
 </template>
 
-<script setup lang="ts">
+<script setup>
 defineOptions({ name: "Page404" });
 const router = useRouter();
 const back = () => router.push("/");

@@ -1,6 +1,6 @@
 <div align="center">
-  <img alt="vue3-element-admin" width="80" height="80" src="./src/assets/logo.png">
-  <h1>vue3-element-admin</h1>
+  <img alt="vue3-element-admin-js" width="80" height="80" src="./src/assets/logo.png">
+  <h1>vue3-element-admin-js</h1>
 
   <img src="https://img.shields.io/badge/Vue-3.5.13-brightgreen.svg"/>
   <img src="https://img.shields.io/badge/Vite-6.2.2-green.svg"/>
@@ -37,7 +37,7 @@
 
 ## 项目特色
 
-- **简洁易用**：基于 [vue-element-admin](https://gitee.com/panjiachen/vue-element-admin) 升级的 Vue3 版本，无过渡封装 ，易上手。
+- **简洁易用**：基于 [vue3-element-admin](https://gitee.com/youlaiorg/vue3-element-admin) 的 JavaScript 版本，适合快速开发。
 - **数据交互**： 支持 `Mock` 数据和[线上接口文档](https://www.apifox.cn/apidoc/shared-195e783f-4d85-4235-a038-eec696de4ea5)，并提供配套的 [Java](https://gitee.com/youlaiorg/youlai-boot) 和 [Node](https://gitee.com/youlaiorg/youlai-nest) 后端源码。
 
 - **系统功能：** 提供用户管理、角色管理、菜单管理、部门管理、字典管理等功能模块。
@@ -57,6 +57,7 @@
 
 | 项目 | Gitee   | Github    | GitCode|
 | ---- | ----| ---- | ---- |
+| vue3-element-admin JS版| [vue3-element-admin-js](https://gitee.com/youlaiorg/vue3-element-admin-js) | [vue3-element-admin-js](https://github.com/youlaitech/vue3-element-admin-js) | [vue3-element-admin-js](https://gitcode.com/youlai/vue3-element-admin-js) |
 | vue3-element-admin 标准版| [vue3-element-admin](https://gitee.com/youlaiorg/vue3-element-admin) | [vue3-element-admin](https://github.com/youlaitech/vue3-element-admin) | [vue3-element-admin](https://gitcode.com/youlai/vue3-element-admin) |
 | vue3-element-admin 精简版 | [vue3-element-template](https://gitee.com/youlaiorg/vue3-element-template) | [vue3-element-template](https://github.com/youlaitech/vue3-element-template) |-|
 | Java 后端 | [youlai-boot](https://gitee.com/youlaiorg/youlai-boot)       | [youlai-boot](https://github.com/haoxianrui/youlai-boot.git) |[youlai-boot](https://gitcode.com/youlai/youlai-boot.git)|

@@ -117,14 +117,12 @@
   </div>
 </template>
 
-<script setup lang="ts">
-import { LocationQuery, RouteLocationRaw, useRoute } from "vue-router";
+<script setup>
+import { useRoute } from "vue-router";
 import { useI18n } from "vue-i18n";
 
-import AuthAPI, { type LoginFormData } from "@/api/auth.api";
+import AuthAPI from "@/api/auth.api";
 import router from "@/router";
-
-import type { FormInstance } from "element-plus";
 
 import defaultSettings from "@/settings";
 import { ThemeMode } from "@/enums/settings/theme.enum";
@@ -136,14 +134,14 @@ const settingsStore = useSettingsStore();
 
 const route = useRoute();
 const { t } = useI18n();
-const loginFormRef = ref<FormInstance>();
+const loginFormRef = ref();
 
 const isDark = ref(settingsStore.theme === ThemeMode.DARK); // 是否暗黑模式
 const loading = ref(false); // 按钮 loading 状态
 const isCapsLock = ref(false); // 是否大写锁定
 const captchaBase64 = ref(); // 验证码图片Base64字符串
 
-const loginFormData = ref<LoginFormData>({
+const loginFormData = ref({
   username: "admin",
   password: "123456",
   captchaKey: "",
@@ -222,12 +220,12 @@ async function handleLoginSubmit() {
  * @param query 路由查询参数
  * @returns 标准化后的路由地址对象
  */
-function resolveRedirectTarget(query: LocationQuery): RouteLocationRaw {
+function resolveRedirectTarget(query) {
   // 默认跳转路径
   const defaultPath = "/";
 
   // 获取原始重定向路径
-  const rawRedirect = (query.redirect as string) || defaultPath;
+  const rawRedirect = (query.redirect) || defaultPath;
 
   try {
     // 6. 使用Vue Router解析路径
@@ -248,26 +246,25 @@ const toggleTheme = () => {
   settingsStore.changeTheme(newTheme);
 };
 
-// 检查输入大小写
-function checkCapsLock(event: KeyboardEvent) {
-  // 防止浏览器密码自动填充时报错
-  if (event instanceof KeyboardEvent) {
-    isCapsLock.value = event.getModifierState("CapsLock");
-  }
+// 检查大写锁定
+function checkCapsLock(e) {
+  const key = e.key;
+  isCapsLock.value = key && key.length === 1 && key >= "A" && key <= "Z" && !e.shiftKey;
 }
 
 // 设置登录凭证
-const setLoginCredentials = (username: string, password: string) => {
+function setLoginCredentials(username, password) {
   loginFormData.value.username = username;
   loginFormData.value.password = password;
-};
+}
 
-// 未实现功能提示
-const unfinished = () => {
-  ElMessage.warning("该功能尚未完成，敬请期待！");
-};
+// 未完成功能提示
+function unfinished() {
+  ElMessage.warning("功能开发中，敬请期待！");
+}
 
-onMounted(() => getCaptcha());
+// 初始化验证码
+getCaptcha();
 </script>
 
 <style lang="scss" scoped>

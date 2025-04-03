@@ -12,7 +12,7 @@
   </section>
 </template>
 
-<script setup lang="ts">
+<script setup>
 import { useSettingsStore, useTagsViewStore } from "@/store";
 import variables from "@/styles/variables.module.scss";
 

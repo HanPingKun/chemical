@@ -129,36 +129,36 @@
   </div>
 </template>
 
-<script setup lang="ts">
+<script setup>
 defineOptions({
   name: "Config",
   inheritAttrs: false,
 });
 
-import ConfigAPI, { ConfigPageVO, ConfigForm, ConfigPageQuery } from "@/api/system/config.api";
+import ConfigAPI from "@/api/system/config.api";
 
 const queryFormRef = ref();
 const dataFormRef = ref();
 
 const loading = ref(false);
-const selectIds = ref<number[]>([]);
+const selectIds = ref([]);
 const total = ref(0);
 
-const queryParams = reactive<ConfigPageQuery>({
+const queryParams = reactive({
   pageNum: 1,
   pageSize: 10,
   keywords: "",
 });
 
 // 系统配置表格数据
-const pageData = ref<ConfigPageVO[]>([]);
+const pageData = ref([]);
 
 const dialog = reactive({
   title: "",
   visible: false,
 });
 
-const formData = reactive<ConfigForm>({
+const formData = reactive({
   id: undefined,
   configName: "",
   configKey: "",
@@ -193,12 +193,12 @@ function handleResetQuery() {
 }
 
 // 行复选框选中项变化
-function handleSelectionChange(selection: any) {
-  selectIds.value = selection.map((item: any) => item.id);
+function handleSelectionChange(selection) {
+  selectIds.value = selection.map((item) => item.id);
 }
 
 // 打开系统配置弹窗
-function handleOpenDialog(id?: string) {
+function handleOpenDialog(id) {
   dialog.visible = true;
   if (id) {
     dialog.title = "修改系统配置";
@@ -220,7 +220,7 @@ const handleRefreshCache = useDebounceFn(() => {
 
 // 系统配置表单提交
 function handleSubmit() {
-  dataFormRef.value.validate((valid: any) => {
+  dataFormRef.value.validate((valid) => {
     if (valid) {
       loading.value = true;
       const id = formData.id;
@@ -259,7 +259,7 @@ function handleCloseDialog() {
 }
 
 // 删除系统配置
-function handleDelete(id: string) {
+function handleDelete(id) {
   ElMessageBox.confirm("确认删除该项配置?", "警告", {
     confirmButtonText: "确定",
     cancelButtonText: "取消",

@@ -237,11 +237,11 @@
   </div>
 </template>
 
-<script setup lang="ts">
+<script setup>
 import { useAppStore } from "@/store/modules/app.store";
 import { DeviceEnum } from "@/enums/settings/device.enum";
 
-import UserAPI, { UserForm, UserPageQuery, UserPageVO } from "@/api/system/user.api";
+import UserAPI from "@/api/system/user.api";
 import DeptAPI from "@/api/system/dept.api";
 import RoleAPI from "@/api/system/role.api";
 
@@ -258,12 +258,12 @@ const appStore = useAppStore();
 const queryFormRef = ref();
 const userFormRef = ref();
 
-const queryParams = reactive<UserPageQuery>({
+const queryParams = reactive({
   pageNum: 1,
   pageSize: 10,
 });
 
-const pageData = ref<UserPageVO[]>();
+const pageData = ref();
 const total = ref(0);
 const loading = ref(false);
 
@@ -273,7 +273,7 @@ const dialog = reactive({
 });
 const drawerSize = computed(() => (appStore.device === DeviceEnum.DESKTOP ? "600px" : "90%"));
 
-const formData = reactive<UserForm>({
+const formData = reactive({
   status: 1,
 });
 
@@ -299,11 +299,11 @@ const rules = reactive({
 });
 
 // 选中的用户ID
-const selectIds = ref<number[]>([]);
+const selectIds = ref([]);
 // 部门下拉数据源
-const deptOptions = ref<OptionType[]>();
+const deptOptions = ref();
 // 角色下拉数据源
-const roleOptions = ref<OptionType[]>();
+const roleOptions = ref();
 // 导入弹窗显示状态
 const importDialogVisible = ref(false);
 
@@ -330,12 +330,12 @@ function handleResetQuery() {
 }
 
 // 选中项发生变化
-function handleSelectionChange(selection: any[]) {
+function handleSelectionChange(selection) {
   selectIds.value = selection.map((item) => item.id);
 }
 
 // 重置密码
-function hancleResetPassword(row: UserPageVO) {
+function hancleResetPassword(row) {
   ElMessageBox.prompt("请输入用户【" + row.username + "】的新密码", "重置密码", {
     confirmButtonText: "确定",
     cancelButtonText: "取消",
@@ -360,7 +360,7 @@ function hancleResetPassword(row: UserPageVO) {
  *
  * @param id 用户ID
  */
-async function handleOpenDialog(id?: string) {
+async function handleOpenDialog(id) {
   dialog.visible = true;
   // 加载角色下拉数据源
   roleOptions.value = await RoleAPI.getOptions();
@@ -389,7 +389,7 @@ function handleCloseDialog() {
 
 // 提交用户表单（防抖）
 const handleSubmit = useDebounceFn(() => {
-  userFormRef.value.validate((valid: boolean) => {
+  userFormRef.value.validate((valid) => {
     if (valid) {
       const userId = formData.id;
       loading.value = true;
@@ -419,7 +419,7 @@ const handleSubmit = useDebounceFn(() => {
  *
  * @param id  用户ID
  */
-function handleDelete(id?: number) {
+function handleDelete(id) {
   const userIds = [id || selectIds.value].join(",");
   if (!userIds) {
     ElMessage.warning("请勾选删除项");
@@ -453,7 +453,7 @@ function handleOpenImportDialog() {
 
 // 导出用户
 function handleExport() {
-  UserAPI.export(queryParams).then((response: any) => {
+  UserAPI.export(queryParams).then((response) => {
     const fileData = response.data;
     const fileName = decodeURI(response.headers["content-disposition"].split(";")[1].split("=")[1]);
     const fileType =

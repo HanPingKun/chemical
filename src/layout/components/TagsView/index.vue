@@ -55,14 +55,14 @@
   </div>
 </template>
 
-<script setup lang="ts">
-import { useRoute, useRouter, RouteRecordRaw } from "vue-router";
+<script setup>
+import { useRoute, useRouter } from "vue-router";
 import { resolve } from "path-browserify";
 import { translateRouteTitle } from "@/utils/i18n";
 
 import { usePermissionStore, useTagsViewStore, useSettingsStore, useAppStore } from "@/store";
 
-const { proxy } = getCurrentInstance()!;
+const { proxy } = getCurrentInstance();
 const router = useRouter();
 const route = useRoute();
 
@@ -74,7 +74,7 @@ const { visitedViews } = storeToRefs(tagsViewStore);
 const settingsStore = useSettingsStore();
 const layout = computed(() => settingsStore.layout);
 
-const selectedTag = ref<TagView>({
+const selectedTag = ref({
   path: "",
   fullPath: "",
   name: "",
@@ -83,7 +83,7 @@ const selectedTag = ref<TagView>({
   keepAlive: false,
 });
 
-const affixTags = ref<TagView[]>([]);
+const affixTags = ref([]);
 const left = ref(0);
 const top = ref(0);
 
@@ -110,9 +110,9 @@ watch(contentMenuVisible, (value) => {
 /**
  * 过滤出需要固定的标签
  */
-function filterAffixTags(routes: RouteRecordRaw[], basePath = "/") {
-  let tags: TagView[] = [];
-  routes.forEach((route: RouteRecordRaw) => {
+function filterAffixTags(routes, basePath = "/") {
+  let tags = [];
+  routes.forEach((route) => {
     const tagPath = resolve(basePath, route.path);
     if (route.meta?.affix) {
       tags.push({
@@ -135,7 +135,7 @@ function filterAffixTags(routes: RouteRecordRaw[], basePath = "/") {
 }
 
 function initTags() {
-  const tags: TagView[] = filterAffixTags(permissionStore.routes);
+  const tags = filterAffixTags(permissionStore.routes);
   affixTags.value = tags;
   for (const tag of tags) {
     // Must have tag name
@@ -148,7 +148,7 @@ function initTags() {
 function addTags() {
   if (route.meta.title) {
     tagsViewStore.addView({
-      name: route.name as string,
+      name: route.name,
       title: route.meta.title,
       path: route.path,
       fullPath: route.fullPath,
@@ -168,7 +168,7 @@ function moveToCurrentTag() {
         // route.query = { ...route.query, ...tag.query };
         if (tag.fullPath !== route.fullPath) {
           tagsViewStore.updateVisitedView({
-            name: route.name as string,
+            name: route.name,
             title: route.meta.title || "",
             path: route.path,
             fullPath: route.fullPath,
@@ -182,7 +182,7 @@ function moveToCurrentTag() {
   });
 }
 
-function isAffix(tag: TagView) {
+function isAffix(tag) {
   return tag?.affix;
 }
 
@@ -200,7 +200,7 @@ function isLastView() {
   );
 }
 
-function refreshSelectedTag(view: TagView) {
+function refreshSelectedTag(view) {
   tagsViewStore.delCachedView(view);
   const { fullPath } = view;
   nextTick(() => {
@@ -208,8 +208,8 @@ function refreshSelectedTag(view: TagView) {
   });
 }
 
-function closeSelectedTag(view: TagView) {
-  tagsViewStore.delView(view).then((res: any) => {
+function closeSelectedTag(view) {
+  tagsViewStore.delView(view).then((res) => {
     if (tagsViewStore.isActive(view)) {
       tagsViewStore.toLastView(res.visitedViews, view);
     }
@@ -217,15 +217,16 @@ function closeSelectedTag(view: TagView) {
 }
 
 function closeLeftTags() {
-  tagsViewStore.delLeftViews(selectedTag.value).then((res: any) => {
-    if (!res.visitedViews.find((item: any) => item.path === route.path)) {
+  tagsViewStore.delLeftViews(selectedTag.value).then((res) => {
+    if (!res.visitedViews.find((item) => item.path === route.path)) {
       tagsViewStore.toLastView(res.visitedViews);
     }
   });
 }
+
 function closeRightTags() {
-  tagsViewStore.delRightViews(selectedTag.value).then((res: any) => {
-    if (!res.visitedViews.find((item: any) => item.path === route.path)) {
+  tagsViewStore.delRightViews(selectedTag.value).then((res) => {
+    if (!res.visitedViews.find((item) => item.path === route.path)) {
       tagsViewStore.toLastView(res.visitedViews);
     }
   });
@@ -238,8 +239,8 @@ function closeOtherTags() {
   });
 }
 
-function closeAllTags(view: TagView) {
-  tagsViewStore.delAllViews().then((res: any) => {
+function closeAllTags(view) {
+  tagsViewStore.delAllViews().then((res) => {
     tagsViewStore.toLastView(res.visitedViews, view);
   });
 }
@@ -247,27 +248,19 @@ function closeAllTags(view: TagView) {
 /**
  * 打开右键菜单
  */
-function openContentMenu(tag: TagView, e: MouseEvent) {
+function openContentMenu(tag, e) {
   const menuMinWidth = 105;
-
   const offsetLeft = proxy?.$el.getBoundingClientRect().left; // container margin left
   const offsetWidth = proxy?.$el.offsetWidth; // container width
   const maxLeft = offsetWidth - menuMinWidth; // left boundary
-  const l = e.clientX - offsetLeft + 15; // 15: margin right
+  const left = e.clientX - offsetLeft + 15; // 15: margin right
 
-  if (l > maxLeft) {
+  if (left > maxLeft) {
     left.value = maxLeft;
   } else {
-    left.value = l;
+    left.value = left;
   }
-
-  // 混合模式下，需要减去顶部菜单(fixed)的高度
-  if (layout.value === "mix") {
-    top.value = e.clientY - 50;
-  } else {
-    top.value = e.clientY;
-  }
-
+  top.value = e.clientY;
   contentMenuVisible.value = true;
   selectedTag.value = tag;
 }
@@ -280,59 +273,14 @@ function closeContentMenu() {
 }
 
 /**
- * 滚动事件
+ * 处理鼠标滚轮事件
  */
-function handleScroll() {
-  closeContentMenu();
+function handleScroll(e) {
+  const eventDelta = e.wheelDelta || -e.deltaY * 40;
+  const $scrollWrapper = proxy?.$el.querySelector(".scroll-container");
+  $scrollWrapper.scrollLeft = $scrollWrapper.scrollLeft + eventDelta / 4;
 }
 
-function findOutermostParent(tree: any[], findName: string) {
-  let parentMap: any = {};
-
-  function buildParentMap(node: any, parent: any) {
-    parentMap[node.name] = parent;
-
-    if (node.children) {
-      for (let i = 0; i < node.children.length; i++) {
-        buildParentMap(node.children[i], node);
-      }
-    }
-  }
-
-  for (let i = 0; i < tree.length; i++) {
-    buildParentMap(tree[i], null);
-  }
-
-  let currentNode = parentMap[findName];
-  while (currentNode) {
-    if (!parentMap[currentNode.name]) {
-      return currentNode;
-    }
-    currentNode = parentMap[currentNode.name];
-  }
-
-  return null;
-}
-
-const againActiveTop = (newVal: string) => {
-  if (layout.value !== "mix") return;
-  const parent = findOutermostParent(permissionStore.routes, newVal);
-  if (appStore.activeTopMenu !== parent.path) {
-    appStore.activeTopMenu(parent.path);
-  }
-};
-// 如果是混合模式，更改selectedTag，需要对应高亮的activeTop
-watch(
-  () => route.name,
-  (newVal) => {
-    if (newVal) {
-      againActiveTop(newVal as string);
-    }
-  },
-  {
-    deep: true,
-  }
-);
 onMounted(() => {
   initTags();
 });
@@ -340,95 +288,105 @@ onMounted(() => {
 
 <style lang="scss" scoped>
 .tags-container {
+  height: 34px;
   width: 100%;
-  height: $tags-view-height;
-  background-color: var(--el-bg-color);
-  border: 1px solid var(--el-border-color-light);
-  box-shadow: 0 1px 1px var(--el-box-shadow-light);
+  background: #fff;
+  border-bottom: 1px solid #d8dce5;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.12), 0 0 3px 0 rgba(0, 0, 0, 0.04);
+
+  .scroll-container {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    white-space: nowrap;
+    overflow: hidden;
+
+    :deep(.el-scrollbar__bar) {
+      bottom: 0px;
+    }
+
+    :deep(.el-scrollbar__wrap) {
+      height: 49px;
+    }
+  }
 
   .tags-item {
     display: inline-block;
-    padding: 3px 8px;
-    margin: 4px 0 0 5px;
+    position: relative;
+    height: 26px;
+    line-height: 26px;
+    border: 1px solid #d8dce5;
+    color: #495060;
+    background: #fff;
+    padding: 0 8px;
     font-size: 12px;
-    cursor: pointer;
-    border: 1px solid var(--el-border-color-light);
-
-    &:hover {
-      color: var(--el-color-primary);
-    }
-
+    margin-left: 5px;
+    margin-top: 4px;
     &:first-of-type {
       margin-left: 15px;
     }
-
     &:last-of-type {
       margin-right: 15px;
     }
-
-    .tag-close-icon {
-      vertical-align: -0.15em;
-      cursor: pointer;
-      border-radius: 50%;
-
-      &:hover {
-        color: #fff;
-        background-color: var(--el-color-primary);
-      }
-    }
-
     &.active {
+      background-color: #42b983;
       color: #fff;
-      background-color: var(--el-color-primary);
-
+      border-color: #42b983;
       &::before {
+        content: "";
+        background: #fff;
         display: inline-block;
         width: 8px;
         height: 8px;
-        margin-right: 5px;
-        content: "";
-        background: #fff;
         border-radius: 50%;
+        position: relative;
+        margin-right: 2px;
       }
+    }
+  }
 
-      .tag-close-icon:hover {
-        color: var(--el-color-primary);
-        background-color: var(--el-fill-color-light);
+  .contextmenu {
+    margin: 0;
+    background: #fff;
+    z-index: 3000;
+    position: absolute;
+    list-style-type: none;
+    padding: 5px 0;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 400;
+    color: #333;
+    box-shadow: 2px 2px 3px 0 rgba(0, 0, 0, 0.3);
+    li {
+      margin: 0;
+      padding: 7px 16px;
+      cursor: pointer;
+      &:hover {
+        background: #eee;
       }
     }
   }
 }
 
-.contextmenu {
-  position: absolute;
-  z-index: 99;
-  font-size: 12px;
-  background: var(--el-bg-color-overlay);
-  border-radius: 4px;
-  box-shadow: var(--el-box-shadow-light);
-
-  li {
-    padding: 8px 16px;
-    cursor: pointer;
-
+//reset element css of el-icon-close
+.tags-item {
+  .el-icon-close {
+    width: 16px;
+    height: 16px;
+    vertical-align: 2px;
+    border-radius: 50%;
+    text-align: center;
+    transition: all 0.3s cubic-bezier(0.645, 0.045, 0.355, 1);
+    transform-origin: 100% 50%;
+    &:before {
+      transform: scale(0.6);
+      display: inline-block;
+      vertical-align: -3px;
+    }
     &:hover {
-      background: var(--el-fill-color-light);
+      background-color: #b4bccc;
+      color: #fff;
     }
-  }
-}
-
-.scroll-container {
-  position: relative;
-  width: 100%;
-  overflow: hidden;
-  white-space: nowrap;
-
-  .el-scrollbar__bar {
-    bottom: 0;
-  }
-
-  .el-scrollbar__wrap {
-    height: 49px;
   }
 }
 </style>

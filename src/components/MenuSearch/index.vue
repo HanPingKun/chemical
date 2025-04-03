@@ -75,28 +75,19 @@
   </div>
 </template>
 
-<script setup lang="ts">
+<script setup>
 import router from "@/router";
 import { usePermissionStore } from "@/store";
 import { isExternal } from "@/utils";
-import { RouteRecordRaw } from "vue-router";
 
 const permissionStore = usePermissionStore();
 const isModalVisible = ref(false);
 const searchKeyword = ref("");
 const searchInputRef = ref();
 const excludedRoutes = ref(["/redirect", "/login", "/401", "/404"]);
-const menuItems = ref<SearchItem[]>([]);
-const searchResults = ref<SearchItem[]>([]);
+const menuItems = ref([]);
+const searchResults = ref([]);
 const activeIndex = ref(-1);
-
-interface SearchItem {
-  title: string;
-  path: string;
-  name?: string;
-  icon?: string;
-  redirect?: string;
-}
 
 // 打开搜索模态框
 function openSearchModal() {
@@ -137,7 +128,7 @@ function selectActiveResult() {
 }
 
 // 导航搜索结果
-function navigateResults(direction: string) {
+function navigateResults(direction) {
   if (displayResults.value.length === 0) return;
 
   if (direction === "up") {
@@ -150,7 +141,7 @@ function navigateResults(direction: string) {
 }
 
 // 跳转到
-function navigateToRoute(item: SearchItem) {
+function navigateToRoute(item) {
   closeSearchModal();
   if (isExternal(item.path)) {
     window.open(item.path, "_blank");
@@ -159,7 +150,7 @@ function navigateToRoute(item: SearchItem) {
   }
 }
 
-function loadRoutes(routes: RouteRecordRaw[], parentPath = "") {
+function loadRoutes(routes, parentPath = "") {
   routes.forEach((route) => {
     const path = route.path.startsWith("/") ? route.path : `${parentPath}/${route.path}`;
     if (excludedRoutes.value.includes(route.path) || isExternal(route.path)) return;

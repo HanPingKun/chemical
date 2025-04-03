@@ -4,7 +4,7 @@
   </div>
 </template>
 
-<script setup lang="ts">
+<script setup>
 import { useSettingsStore } from "@/store";
 import { ThemeMode, SidebarColor } from "@/enums/settings/theme.enum";
 import { LayoutMode } from "@/enums/settings/layout.enum";

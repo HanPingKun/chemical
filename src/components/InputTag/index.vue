@@ -22,23 +22,17 @@
     </el-button>
   </div>
 </template>
-<script setup lang="ts">
-import type { InputInstance } from "element-plus";
-
+<script setup>
 const inputValue = ref("");
 const inputVisible = ref(false);
-const inputRef = ref<InputInstance>();
+const inputRef = ref();
 
 // 定义 model，用于与父组件的 v-model绑定
-const tags = defineModel<string[]>();
+const tags = defineModel();
 
 defineProps({
   config: {
-    type: Object as () => {
-      buttonAttrs: Record<string, any>;
-      inputAttrs: Record<string, any>;
-      tagAttrs: Record<string, any>;
-    },
+    type: Object,
     default: () => ({
       buttonAttrs: {},
       inputAttrs: {},
@@ -47,7 +41,7 @@ defineProps({
   },
 });
 
-const handleClose = (tag: string) => {
+const handleClose = (tag) => {
   if (tags.value) {
     const newTags = tags.value.filter((t) => t !== tag);
     tags.value = [...newTags];

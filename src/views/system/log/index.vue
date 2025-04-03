@@ -54,20 +54,20 @@
   </div>
 </template>
 
-<script setup lang="ts">
+<script setup>
 defineOptions({
   name: "Log",
   inheritAttrs: false,
 });
 
-import LogAPI, { LogPageVO, LogPageQuery } from "@/api/system/log.api";
+import LogAPI from "@/api/system/log.api";
 
 const queryFormRef = ref();
 
 const loading = ref(false);
 const total = ref(0);
 
-const queryParams = reactive<LogPageQuery>({
+const queryParams = reactive({
   pageNum: 1,
   pageSize: 10,
   keywords: "",
@@ -75,7 +75,7 @@ const queryParams = reactive<LogPageQuery>({
 });
 
 // 日志表格数据
-const pageData = ref<LogPageVO[]>();
+const pageData = ref();
 
 /** 查询 */
 function handleQuery() {

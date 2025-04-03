@@ -39,8 +39,7 @@
   </el-scrollbar>
 </template>
 
-<script lang="ts" setup>
-import { LocationQueryRaw, RouteRecordRaw } from "vue-router";
+<script setup>
 import { usePermissionStore, useAppStore, useSettingsStore } from "@/store";
 import { translateRouteTitle } from "@/utils/i18n";
 import variables from "@/styles/variables.module.scss";
@@ -61,7 +60,7 @@ const theme = computed(() => settingsStore.theme);
 const sidebarColorScheme = computed(() => settingsStore.sidebarColorScheme);
 
 // 顶部菜单列表
-const topMenus = ref<RouteRecordRaw[]>([]);
+const topMenus = ref([]);
 
 // 获取当前路由路径的顶部菜单路径
 const activeTopMenuPath =
@@ -76,7 +75,7 @@ appStore.activeTopMenu(activeTopMenuPath);
  * 处理菜单点击事件，切换顶部菜单并加载对应的左侧菜单
  * @param routePath 点击的菜单路径
  */
-const handleMenuSelect = (routePath: string) => {
+const handleMenuSelect = (routePath) => {
   appStore.activeTopMenu(routePath); // 设置激活的顶部菜单
   permissionStore.setMixedLayoutLeftRoutes(routePath); // 更新左侧菜单
   navigateToFirstLeftMenu(permissionStore.mixedLayoutLeftRoutes); // 跳转到左侧第一个菜单
@@ -86,20 +85,20 @@ const handleMenuSelect = (routePath: string) => {
  * 跳转到左侧第一个可访问的菜单
  * @param menus 左侧菜单列表
  */
-const navigateToFirstLeftMenu = (menus: RouteRecordRaw[]) => {
+const navigateToFirstLeftMenu = (menus) => {
   if (menus.length === 0) return;
 
   const [firstMenu] = menus;
 
   // 如果第一个菜单有子菜单，递归跳转到第一个子菜单
   if (firstMenu.children && firstMenu.children.length > 0) {
-    navigateToFirstLeftMenu(firstMenu.children as RouteRecordRaw[]);
+    navigateToFirstLeftMenu(firstMenu.children);
   } else if (firstMenu.name) {
     router.push({
       name: firstMenu.name,
       query:
         typeof firstMenu.meta?.params === "object"
-          ? (firstMenu.meta.params as LocationQueryRaw)
+          ? firstMenu.meta.params
           : undefined,
     });
   }

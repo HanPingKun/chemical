@@ -12,17 +12,16 @@
   </el-config-provider>
 </template>
 
-<script setup lang="ts">
+<script setup>
 import { useAppStore, useSettingsStore } from "@/store";
 import defaultSettings from "@/settings";
 import { ThemeMode } from "@/enums/settings/theme.enum";
-import { ComponentSize } from "@/enums/settings/layout.enum";
 
 const appStore = useAppStore();
 const settingsStore = useSettingsStore();
 
 const locale = computed(() => appStore.locale);
-const size = computed(() => appStore.size as ComponentSize);
+const size = computed(() => appStore.size);
 const watermarkEnabled = computed(() => settingsStore.watermarkEnabled);
 
 // 明亮/暗黑主题水印字体颜色适配

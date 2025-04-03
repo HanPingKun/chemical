@@ -16,7 +16,7 @@
   </el-dropdown>
 </template>
 
-<script setup lang="ts">
+<script setup>
 import { useAppStore } from "@/store/modules/app.store";
 import { LanguageEnum } from "@/enums/settings/locale.enum";
 
@@ -40,7 +40,7 @@ const { locale, t } = useI18n();
  *
  * @param lang  语言（zh-cn、en）
  */
-function handleLanguageChange(lang: string) {
+function handleLanguageChange(lang) {
   locale.value = lang;
   appStore.changeLanguage(lang);
 

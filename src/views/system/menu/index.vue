@@ -204,7 +204,6 @@
               </el-tooltip>
             </div>
           </template>
-
           <el-input v-model="formData.component" placeholder="system/user/index" style="width: 95%">
             <template v-if="formData.type == MenuTypeEnum.MENU" #prepend>src/views/</template>
             <template v-if="formData.type == MenuTypeEnum.MENU" #append>.vue</template>
@@ -274,11 +273,11 @@
               始终显示
               <el-tooltip placement="bottom" effect="light">
                 <template #content>
-                  选择“是”，即使目录或菜单下只有一个子节点，也会显示父节点。
+                  选择"是"，即使目录或菜单下只有一个子节点，也会显示父节点。
                   <br />
-                  选择“否”，如果目录或菜单下只有一个子节点，则只显示该子节点，隐藏父节点。
+                  选择"否"，如果目录或菜单下只有一个子节点，则只显示该子节点，隐藏父节点。
                   <br />
-                  如果是叶子节点，请选择“否”。
+                  如果是叶子节点，请选择"否"。
                 </template>
                 <el-icon class="ml-1 cursor-pointer">
                   <QuestionFilled />
@@ -334,11 +333,11 @@
   </div>
 </template>
 
-<script setup lang="ts">
+<script setup>
 import { useAppStore } from "@/store/modules/app.store";
 import { DeviceEnum } from "@/enums/settings/device.enum";
 
-import MenuAPI, { MenuQuery, MenuForm, MenuVO } from "@/api/system/menu.api";
+import MenuAPI from "@/api/system/menu.api";
 import { MenuTypeEnum } from "@/enums/system/menu.enum";
 
 defineOptions({
@@ -359,13 +358,13 @@ const dialog = reactive({
 
 const drawerSize = computed(() => (appStore.device === DeviceEnum.DESKTOP ? "600px" : "90%"));
 // 查询参数
-const queryParams = reactive<MenuQuery>({});
+const queryParams = reactive({});
 // 菜单表格数据
-const menuTableData = ref<MenuVO[]>([]);
+const menuTableData = ref([]);
 // 顶级菜单下拉选项
-const menuOptions = ref<OptionType[]>([]);
+const menuOptions = ref([]);
 // 初始菜单表单数据
-const initialMenuFormData = ref<MenuForm>({
+const initialMenuFormData = ref({
   id: undefined,
   parentId: "0",
   visible: 1,
@@ -389,7 +388,7 @@ const rules = reactive({
 });
 
 // 选择表格的行菜单ID
-const selectedMenuId = ref<string | undefined>();
+const selectedMenuId = ref();
 
 // 查询菜单
 function handleQuery() {
@@ -410,7 +409,7 @@ function handleResetQuery() {
 }
 
 // 行点击事件
-function handleRowClick(row: MenuVO) {
+function handleRowClick(row) {
   selectedMenuId.value = row.id;
 }
 
@@ -420,7 +419,7 @@ function handleRowClick(row: MenuVO) {
  * @param parentId 父菜单ID
  * @param menuId 菜单ID
  */
-function handleOpenDialog(parentId?: string, menuId?: string) {
+function handleOpenDialog(parentId, menuId) {
   MenuAPI.getOptions(true)
     .then((data) => {
       menuOptions.value = [{ value: "0", label: "顶级菜单", children: data }];
@@ -461,7 +460,7 @@ function handleMenuTypeChange() {
  * 提交表单
  */
 function handleSubmit() {
-  menuFormRef.value.validate((isValid: boolean) => {
+  menuFormRef.value.validate((isValid) => {
     if (isValid) {
       const menuId = formData.value.id;
       if (menuId) {
@@ -487,7 +486,7 @@ function handleSubmit() {
 }
 
 // 删除菜单
-function handleDelete(menuId: string) {
+function handleDelete(menuId) {
   if (!menuId) {
     ElMessage.warning("请勾选删除项");
     return false;

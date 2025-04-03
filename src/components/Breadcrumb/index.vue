@@ -14,33 +14,32 @@
   </el-breadcrumb>
 </template>
 
-<script setup lang="ts">
-import { RouteLocationMatched } from "vue-router";
+<script setup>
 import { compile } from "path-to-regexp";
 import router from "@/router";
 import { translateRouteTitle } from "@/utils/i18n";
 
 const currentRoute = useRoute();
-const pathCompile = (path: string) => {
+const pathCompile = (path) => {
   const { params } = currentRoute;
   const toPath = compile(path);
   return toPath(params);
 };
 
-const breadcrumbs = ref<Array<RouteLocationMatched>>([]);
+const breadcrumbs = ref([]);
 
 function getBreadcrumb() {
   let matched = currentRoute.matched.filter((item) => item.meta && item.meta.title);
   const first = matched[0];
   if (!isDashboard(first)) {
-    matched = [{ path: "/dashboard", meta: { title: "dashboard" } } as any].concat(matched);
+    matched = [{ path: "/dashboard", meta: { title: "dashboard" } }].concat(matched);
   }
   breadcrumbs.value = matched.filter((item) => {
     return item.meta && item.meta.title && item.meta.breadcrumb !== false;
   });
 }
 
-function isDashboard(route: RouteLocationMatched) {
+function isDashboard(route) {
   const name = route && route.name;
   if (!name) {
     return false;
@@ -48,7 +47,7 @@ function isDashboard(route: RouteLocationMatched) {
   return name.toString().trim().toLocaleLowerCase() === "Dashboard".toLocaleLowerCase();
 }
 
-function handleLink(item: any) {
+function handleLink(item) {
   const { redirect, path } = item;
   if (redirect) {
     router.push(redirect).catch((err) => {

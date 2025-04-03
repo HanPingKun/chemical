@@ -1,5 +1,5 @@
 <!-- 字典组件示例 -->
-<script setup lang="ts">
+<script setup>
 const stringValue = ref("1"); // 性别(值为String)
 const numberValue = ref(1); // 性别(值为Number)
 const arrayValue = ref(["1", "2"]); // 性别(值为Array)

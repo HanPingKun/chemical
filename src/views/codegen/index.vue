@@ -406,7 +406,7 @@
   </div>
 </template>
 
-<script setup lang="ts">
+<script setup>
 defineOptions({
   name: "Codegen",
 });
@@ -414,31 +414,18 @@ defineOptions({
 import Sortable from "sortablejs";
 import "codemirror/mode/javascript/javascript.js";
 import Codemirror from "codemirror-editor-vue3";
-import type { CmComponentRef } from "codemirror-editor-vue3";
-import type { EditorConfiguration } from "codemirror";
 
 import { FormTypeEnum } from "@/enums/codegen/form.enum";
 import { QueryTypeEnum } from "@/enums/codegen/query.enum";
 
-import GeneratorAPI, {
-  TablePageVO,
-  GenConfigForm,
-  TablePageQuery,
-  FieldConfig,
-} from "@/api/codegen.api";
-
+import GeneratorAPI from "@/api/codegen.api";
 import DictAPI from "@/api/system/dict.api";
 import MenuAPI from "@/api/system/menu.api";
 
-interface TreeNode {
-  label: string;
-  content?: string;
-  children?: TreeNode[];
-}
-const treeData = ref<TreeNode[]>([]);
+const treeData = ref([]);
 
 const queryFormRef = ref();
-const queryParams = reactive<TablePageQuery>({
+const queryParams = reactive({
   pageNum: 1,
   pageSize: 10,
 });
@@ -446,58 +433,92 @@ const queryParams = reactive<TablePageQuery>({
 const loading = ref(false);
 const loadingText = ref("loading...");
 
-const pageData = ref<TablePageVO[]>([]);
+const pageData = ref([]);
 const total = ref(0);
-
-const formTypeOptions: Record<string, OptionType> = FormTypeEnum;
-const queryTypeOptions: Record<string, OptionType> = QueryTypeEnum;
-const dictOptions = ref<OptionType[]>();
-const menuOptions = ref<OptionType[]>([]);
-const genConfigFormData = ref<GenConfigForm>({
-  fieldConfigs: [],
-});
-
-const genConfigFormRules = {
-  tableName: [{ required: true, message: "请输入表名", trigger: "blur" }],
-  businessName: [{ required: true, message: "请输入业务名", trigger: "blur" }],
-  packageName: [{ required: true, message: "请输入主包名", trigger: "blur" }],
-  moduleName: [{ required: true, message: "请输入模块名", trigger: "blur" }],
-  entityName: [{ required: true, message: "请输入实体名", trigger: "blur" }],
-};
 
 const dialog = reactive({
   visible: false,
   title: "",
 });
 
-const { copy, copied } = useClipboard();
-const code = ref();
-const cmRef = ref<CmComponentRef>();
-const cmOptions: EditorConfiguration = {
-  mode: "text/javascript",
+const active = ref(0);
+const prevBtnText = ref("上一步");
+const nextBtnText = ref("下一步");
+
+const genConfigFormData = ref({
+  fieldConfigs: [],
+});
+
+const genConfigFormRules = {
+  tableName: [{ required: true, message: "请输入表名", trigger: "blur" }],
+  businessName: [{ required: true, message: "请输入业务名", trigger: "blur" }],
+  packageName: [{ required: true, message: "请输入包名", trigger: "blur" }],
+  moduleName: [{ required: true, message: "请输入模块名", trigger: "blur" }],
+  entityName: [{ required: true, message: "请输入实体名", trigger: "blur" }],
 };
 
-const prevBtnText = ref("");
-const nextBtnText = ref("下一步，字段配置");
-const active = ref(0);
-const currentTableName = ref("");
-const sortFlag = ref<object>();
+const menuOptions = ref([]);
+const dictOptions = ref([]);
 
-// 查询是否全选
+const currentTableName = ref("");
+
 const isCheckAllQuery = ref(false);
-// 列表是否全选
 const isCheckAllList = ref(false);
-// 表单是否全选
 const isCheckAllForm = ref(false);
 
-watch(active, (val) => {
-  if (val === 0) {
-    nextBtnText.value = "下一步，字段配置";
-  } else if (val === 1) {
-    prevBtnText.value = "上一步，基础配置";
-    nextBtnText.value = "下一步，确认生成";
-  } else if (val === 2) {
-    prevBtnText.value = "上一步，字段配置";
+const sortFlag = ref(null);
+
+const queryTypeOptions = [
+  { label: "=", value: QueryTypeEnum.EQ.value },
+  { label: "≠", value: QueryTypeEnum.NE.value },
+  { label: ">", value: QueryTypeEnum.GT.value },
+  { label: "≥", value: QueryTypeEnum.GE.value },
+  { label: "<", value: QueryTypeEnum.LT.value },
+  { label: "≤", value: QueryTypeEnum.LE.value },
+  { label: "LIKE", value: QueryTypeEnum.LIKE.value },
+  { label: "BETWEEN", value: QueryTypeEnum.BETWEEN.value },
+];
+
+const formTypeOptions = [
+  { label: "文本框", value: FormTypeEnum.INPUT.value },
+  { label: "文本域", value: FormTypeEnum.TEXTAREA.value },
+  { label: "数字框", value: FormTypeEnum.NUMBER.value },
+  { label: "下拉框", value: FormTypeEnum.SELECT.value },
+  { label: "单选框", value: FormTypeEnum.RADIO.value },
+  { label: "复选框", value: FormTypeEnum.CHECKBOX.value },
+  { label: "日期选择器", value: FormTypeEnum.DATE.value },
+  { label: "日期时间选择器", value: FormTypeEnum.DATETIME.value },
+  { label: "图片上传", value: FormTypeEnum.IMAGE.value },
+  { label: "文件上传", value: FormTypeEnum.FILE.value },
+  { label: "富文本编辑器", value: FormTypeEnum.EDITOR.value },
+];
+
+const cmRef = ref();
+const code = ref("");
+const copied = ref(false);
+
+const cmOptions = {
+  mode: "text/javascript",
+  theme: "base16-dark",
+  lineNumbers: true,
+  line: true,
+  styleActiveLine: true,
+  matchBrackets: true,
+  indentUnit: 2,
+  tabSize: 2,
+  lineWrapping: true,
+  readOnly: true,
+};
+
+watch(active, () => {
+  if (active.value === 0) {
+    prevBtnText.value = "取消";
+    nextBtnText.value = "下一步";
+  } else if (active.value === 1) {
+    prevBtnText.value = "上一步";
+    nextBtnText.value = "下一步";
+  } else if (active.value === 2) {
+    prevBtnText.value = "上一步";
     nextBtnText.value = "下载代码";
   }
 });
@@ -509,15 +530,15 @@ watch(copied, () => {
 });
 
 watch(
-  () => genConfigFormData.value.fieldConfigs as FieldConfig[],
-  (newVal: FieldConfig[]) => {
+  () => genConfigFormData.value.fieldConfigs,
+  (newVal) => {
     newVal.forEach((fieldConfig) => {
       if (
         fieldConfig.fieldType &&
         fieldConfig.fieldType.includes("Date") &&
         fieldConfig.isShowInQuery === 1
       ) {
-        fieldConfig.queryType = QueryTypeEnum.BETWEEN.value as number;
+        fieldConfig.queryType = QueryTypeEnum.BETWEEN.value;
       }
     });
   },
@@ -529,26 +550,23 @@ const initSort = () => {
     return;
   }
   const table = document.querySelector(".elTableCustom .el-table__body-wrapper tbody");
-  sortFlag.value = Sortable.create(<HTMLElement>table, {
+  sortFlag.value = Sortable.create(table, {
     group: "shared",
     animation: 150,
-    ghostClass: "sortable-ghost", //拖拽样式
-    handle: ".sortable-handle", //拖拽区域
+    ghostClass: "sortable-ghost",
+    handle: ".sortable-handle",
     easing: "cubic-bezier(1, 0, 0, 1)",
-
-    // 结束拖动事件
-    onEnd: (item: any) => {
+    onEnd: (item) => {
       setNodeSort(item.oldIndex, item.newIndex);
     },
   });
 };
 
-const setNodeSort = (oldIndex: number, newIndex: number) => {
-  // 使用arr复制一份表格数组数据
+const setNodeSort = (oldIndex, newIndex) => {
   let arr = Object.assign([], genConfigFormData.value.fieldConfigs);
   const currentRow = arr.splice(oldIndex, 1)[0];
   arr.splice(newIndex, 0, currentRow);
-  arr.forEach((item: FieldConfig, index) => {
+  arr.forEach((item, index) => {
     item.fieldSort = index + 1;
   });
   genConfigFormData.value.fieldConfigs = [];
@@ -557,10 +575,8 @@ const setNodeSort = (oldIndex: number, newIndex: number) => {
   });
 };
 
-/** 上一步 */
 function handlePrevClick() {
   if (active.value === 2) {
-    //这里需要重新获取一次数据，如果第一次生成代码后，再次点击上一步，数据不重新获取，再次点击下一步，会再次插入数据，导致索引重复报错
     genConfigFormData.value = {
       fieldConfigs: [],
     };
@@ -579,10 +595,8 @@ function handlePrevClick() {
   if (active.value-- <= 0) active.value = 0;
 }
 
-/** 下一步 */
 function handleNextClick() {
   if (active.value === 0) {
-    //这里需要校验基础配置
     const { tableName, packageName, businessName, moduleName, entityName } =
       genConfigFormData.value;
     if (!tableName || !packageName || !businessName || !moduleName || !entityName) {
@@ -592,7 +606,6 @@ function handleNextClick() {
     initSort();
   }
   if (active.value === 1) {
-    // 保存生成配置
     const tableName = genConfigFormData.value.tableName;
     if (!tableName) {
       ElMessage.error("表名不能为空");
@@ -626,7 +639,6 @@ function handleNextClick() {
   }
 }
 
-/** 查询 */
 function handleQuery() {
   loading.value = true;
   GeneratorAPI.getTablePage(queryParams)
@@ -639,22 +651,19 @@ function handleQuery() {
     });
 }
 
-/** 重置查询 */
 function handleResetQuery() {
   queryFormRef.value.resetFields();
   queryParams.pageNum = 1;
   handleQuery();
 }
 
-/** 打开弹窗 */
-async function handleOpenDialog(tableName: string) {
+async function handleOpenDialog(tableName) {
   dialog.visible = true;
   active.value = 0;
 
   menuOptions.value = await MenuAPI.getOptions(true);
 
   currentTableName.value = tableName;
-  // 获取字典数据
   DictAPI.getList().then((data) => {
     dictOptions.value = data;
     loading.value = true;
@@ -667,12 +676,10 @@ async function handleOpenDialog(tableName: string) {
         checkAllSelected("isShowInList", isCheckAllList);
         checkAllSelected("isShowInForm", isCheckAllForm);
 
-        // 如果已经配置过，直接跳转到预览页面
         if (genConfigFormData.value.id) {
           active.value = 2;
           handlePreview(tableName);
         } else {
-          // 如果没有配置过，跳转到基础配置页面
           active.value = 0;
         }
       })
@@ -682,8 +689,7 @@ async function handleOpenDialog(tableName: string) {
   });
 }
 
-/** 重置配置 */
-function handleResetConfig(tableName: string) {
+function handleResetConfig(tableName) {
   ElMessageBox.confirm("确定要重置配置吗？", "提示", {
     type: "warning",
   }).then(() => {
@@ -694,35 +700,29 @@ function handleResetConfig(tableName: string) {
   });
 }
 
-type FieldConfigKey = "isShowInQuery" | "isShowInList" | "isShowInForm";
-
-/** 全选 */
-const toggleCheckAll = (key: FieldConfigKey, value: boolean) => {
+const toggleCheckAll = (key, value) => {
   const fieldConfigs = genConfigFormData.value?.fieldConfigs;
 
   if (fieldConfigs) {
-    fieldConfigs.forEach((row: FieldConfig) => {
+    fieldConfigs.forEach((row) => {
       row[key] = value ? 1 : 0;
     });
   }
 };
 
-const checkAllSelected = (key: keyof FieldConfig, isCheckAllRef: any) => {
+const checkAllSelected = (key, isCheckAllRef) => {
   const fieldConfigs = genConfigFormData.value?.fieldConfigs || [];
-  isCheckAllRef.value = fieldConfigs.every((row: FieldConfig) => row[key] === 1);
+  isCheckAllRef.value = fieldConfigs.every((row) => row[key] === 1);
 };
 
-/** 获取生成预览 */
-function handlePreview(tableName: string) {
+function handlePreview(tableName) {
   treeData.value = [];
   GeneratorAPI.getPreviewData(tableName)
     .then((data) => {
       dialog.title = `代码生成 ${tableName}`;
-      // 组装树形结构完善代码
       const tree = buildTree(data);
       treeData.value = [tree];
 
-      // 默认选中第一个叶子节点并设置 code 值
       const firstLeafNode = findFirstLeafNode(tree);
       if (firstLeafNode) {
         code.value = firstLeafNode.content || "";
@@ -733,22 +733,13 @@ function handlePreview(tableName: string) {
     });
 }
 
-/**
- * 递归构建树形结构
- *
- * @param data - 数据数组
- * @returns 树形结构根节点
- */
-function buildTree(data: { path: string; fileName: string; content: string }[]): TreeNode {
-  // 动态获取根节点
-  const root: TreeNode = { label: "前后端代码", children: [] };
+function buildTree(data) {
+  const root = { label: "前后端代码", children: [] };
 
   data.forEach((item) => {
-    // 将路径分成数组
     const separator = item.path.includes("/") ? "/" : "\\";
     const parts = item.path.split(separator);
 
-    // 定义特殊路径
     const specialPaths = [
       "src" + separator + "main",
       "java",
@@ -760,9 +751,8 @@ function buildTree(data: { path: string; fileName: string; content: string }[]):
       ),
     ];
 
-    // 检查路径中的特殊部分并合并它们
-    const mergedParts: string[] = [];
-    let buffer: string[] = [];
+    const mergedParts = [];
+    let buffer = [];
 
     parts.forEach((part) => {
       buffer.push(part);
@@ -773,7 +763,6 @@ function buildTree(data: { path: string; fileName: string; content: string }[]):
       }
     });
 
-    // 将 mergedParts 路径中的分隔符\替换为/
     mergedParts.forEach((part, index) => {
       mergedParts[index] = part.replace(/\\/g, "/");
     });
@@ -785,7 +774,6 @@ function buildTree(data: { path: string; fileName: string; content: string }[]):
     let currentNode = root;
 
     mergedParts.forEach((part) => {
-      // 查找或创建当前部分的子节点
       let node = currentNode.children?.find((child) => child.label === part);
       if (!node) {
         node = { label: part, children: [] };
@@ -794,7 +782,6 @@ function buildTree(data: { path: string; fileName: string; content: string }[]):
       currentNode = node;
     });
 
-    // 添加文件节点
     currentNode.children?.push({
       label: item.fileName,
       content: item?.content,
@@ -804,12 +791,7 @@ function buildTree(data: { path: string; fileName: string; content: string }[]):
   return root;
 }
 
-/**
- * 递归查找第一个叶子节点
- * @param node - 树形节点
- * @returns 第一个叶子节点
- */
-function findFirstLeafNode(node: TreeNode): TreeNode | null {
+function findFirstLeafNode(node) {
   if (!node.children || node.children.length === 0) {
     return node;
   }
@@ -822,15 +804,13 @@ function findFirstLeafNode(node: TreeNode): TreeNode | null {
   return null;
 }
 
-/** 文件树节点 Click */
-function handleFileTreeNodeClick(data: TreeNode) {
+function handleFileTreeNodeClick(data) {
   if (!data.children || data.children.length === 0) {
     code.value = data.content || "";
   }
 }
 
-/** 获取文件树节点图标 */
-function getFileTreeNodeIcon(label: string) {
+function getFileTreeNodeIcon(label) {
   if (label.endsWith(".java")) {
     return "java";
   }
@@ -849,14 +829,12 @@ function getFileTreeNodeIcon(label: string) {
   return "file";
 }
 
-/** 一键复制 */
 const handleCopyCode = () => {
   if (code.value) {
     copy(code.value);
   }
 };
 
-/** 组件挂载后执行 */
 onMounted(() => {
   handleQuery();
   cmRef.value?.destroy();

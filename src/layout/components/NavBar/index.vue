@@ -11,7 +11,7 @@
   </div>
 </template>
 
-<script setup lang="ts">
+<script setup>
 import { useAppStore } from "@/store";
 
 const appStore = useAppStore();

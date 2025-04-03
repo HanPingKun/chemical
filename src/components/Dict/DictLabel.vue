@@ -6,7 +6,8 @@
     <span>{{ label }}</span>
   </template>
 </template>
-<script setup lang="ts">
+
+<script setup>
 import { useDictStore } from "@/store";
 
 const props = defineProps({
@@ -18,8 +19,8 @@ const props = defineProps({
   },
 });
 const label = ref("");
-const tagType = ref<"success" | "warning" | "info" | "primary" | "danger" | undefined>(); // 标签类型
-const tagSize = ref<"default" | "large" | "small">(props.size as "default" | "large" | "small"); // 标签大小
+const tagType = ref(); // 标签类型
+const tagSize = ref(); // 标签大小
 
 const dictStore = useDictStore();
 /**
@@ -28,7 +29,7 @@ const dictStore = useDictStore();
  * @param value 字典项的值
  * @returns 包含 label 和 tagType 的对象
  */
-const getLabelAndTagByValue = async (dictCode: string, value: any) => {
+const getLabelAndTagByValue = async (dictCode, value) => {
   // 按需加载字典数据
   await dictStore.loadDictItems(dictCode);
   // 从缓存中获取字典数据
@@ -44,14 +45,13 @@ const getLabelAndTagByValue = async (dictCode: string, value: any) => {
  * 更新 label 和 tagType
  */
 const updateLabelAndTag = async () => {
-  console.log("updateLabelAndTag", props.code, props.modelValue);
   if (!props.code || props.modelValue === undefined) return;
   const { label: newLabel, tagType: newTagType } = await getLabelAndTagByValue(
     props.code,
     props.modelValue
   );
   label.value = newLabel;
-  tagType.value = newTagType as typeof tagType.value;
+  tagType.value = newTagType;
 };
 
 watch([() => props.code, () => props.modelValue], updateLabelAndTag);

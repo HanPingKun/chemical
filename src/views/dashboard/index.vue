@@ -149,7 +149,7 @@
               <template #header>
                 <div>
                   <el-skeleton-item variant="h3" style="width: 40%" />
-                  <el-skeleton-item variant="rect" style="float: right; width: 1em; height: 1em" />
+                  <el-skeleton-item variant="rect" style="float: right; width: 1; height: 1em" />
                 </div>
               </template>
 
@@ -278,30 +278,21 @@
   </div>
 </template>
 
-<script setup lang="ts">
+<script setup>
 defineOptions({
   name: "Dashboard",
   inheritAttrs: false,
 });
 
 import { dayjs } from "element-plus";
-import LogAPI, { VisitStatsVO, VisitTrendVO } from "@/api/system/log.api";
+import LogAPI from "@/api/system/log.api";
 import { useUserStore } from "@/store/modules/user.store";
 import { formatGrowthRate } from "@/utils";
-
-interface VersionItem {
-  id: string;
-  title: string; // 版本标题（如：v2.4.0）
-  date: string; // 发布时间
-  content: string; // 版本描述
-  link: string; // 详情链接
-  tag?: string; // 版本标签（可选）
-}
 
 const userStore = useUserStore();
 
 // 当前通知公告列表
-const vesionList = ref<VersionItem[]>([
+const vesionList = ref([
   {
     id: "1",
     title: "v2.4.0",
@@ -351,7 +342,7 @@ const greetings = computed(() => {
 // 访客统计数据加载状态
 const visitStatsLoading = ref(true);
 // 访客统计数据
-const visitStatsData = ref<VisitStatsVO>({
+const visitStatsData = ref({
   todayUvCount: 0,
   uvGrowthRate: 0,
   totalUvCount: 0,
@@ -363,7 +354,7 @@ const visitStatsData = ref<VisitStatsVO>({
 // 访问趋势日期范围（单位：天）
 const visitTrendDateRange = ref(7);
 // 访问趋势图表配置
-const visitTrendChartOptions = ref();
+const visitTrendChartOptions = ref({});
 
 /**
  * 获取访客统计数据
@@ -400,7 +391,7 @@ const fetchVisitTrendData = () => {
  *
  * @param data - 访问趋势数据
  */
-const updateVisitTrendChartOptions = (data: VisitTrendVO) => {
+const updateVisitTrendChartOptions = (data) => {
   console.log("Updating visit trend chart options");
 
   visitTrendChartOptions.value = {
@@ -470,7 +461,7 @@ const updateVisitTrendChartOptions = (data: VisitTrendVO) => {
  *
  * @param growthRate - 增长率数值
  */
-const computeGrowthRateClass = (growthRate?: number): string => {
+const computeGrowthRateClass = (growthRate) => {
   if (!growthRate) {
     return "color-[--el-color-info]";
   }

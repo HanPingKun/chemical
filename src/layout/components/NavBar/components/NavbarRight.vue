@@ -42,7 +42,7 @@
     </div>
   </div>
 </template>
-<script setup lang="ts">
+<script setup>
 import defaultSettings from "@/settings";
 import { DeviceEnum } from "@/enums/settings/device.enum";
 import { useAppStore, useSettingsStore, useUserStore, useTagsViewStore } from "@/store";

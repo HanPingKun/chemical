@@ -58,7 +58,7 @@
   </div>
 </template>
 
-<script setup lang="ts">
+<script setup>
 import { VueDraggable } from "vue-draggable-plus";
 
 const userList = ref([

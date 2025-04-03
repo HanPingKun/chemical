@@ -17,7 +17,7 @@
   </div>
 </template>
 
-<script setup lang="ts">
+<script setup>
 import TextScroll from "@/components/TextScroll/index.vue";
 </script>
 

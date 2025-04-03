@@ -26,7 +26,7 @@
   </div>
 </template>
 
-<script setup lang="ts">
+<script setup>
 import MultiImageUpload from "@/components/Upload/MultiImageUpload.vue";
 
 // 单图

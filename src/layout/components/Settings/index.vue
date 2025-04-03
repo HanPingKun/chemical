@@ -66,7 +66,7 @@
   </el-drawer>
 </template>
 
-<script setup lang="ts">
+<script setup>
 import { LayoutMode } from "@/enums/settings/layout.enum";
 import { ThemeMode } from "@/enums/settings/theme.enum";
 import { SidebarColor } from "@/enums/settings/theme.enum";
@@ -89,7 +89,7 @@ const appStore = useAppStore();
 const settingsStore = useSettingsStore();
 const permissionStore = usePermissionStore();
 
-const isDark = ref<boolean>(settingsStore.theme === ThemeMode.DARK);
+const isDark = ref(settingsStore.theme === ThemeMode.DARK);
 const sidebarColor = ref(settingsStore.sidebarColorScheme);
 
 const selectedThemeColor = computed({
@@ -107,7 +107,7 @@ const drawerVisible = computed({
  *
  * @param isDark 是否启用暗黑模式
  */
-const handleThemeChange = (isDark: string | number | boolean) => {
+const handleThemeChange = (isDark) => {
   settingsStore.changeTheme(isDark ? ThemeMode.DARK : ThemeMode.LIGHT);
 };
 
@@ -116,7 +116,7 @@ const handleThemeChange = (isDark: string | number | boolean) => {
  *
  * @param val 颜色方案名称
  */
-const changeSidebarColor = (val: any) => {
+const changeSidebarColor = (val) => {
   settingsStore.changeSidebarColor(val);
 };
 
@@ -125,10 +125,10 @@ const changeSidebarColor = (val: any) => {
  *
  * @param layout - 布局模式
  */
-const handleLayoutChange = (layout: LayoutMode) => {
+const handleLayoutChange = (layout) => {
   settingsStore.changeLayout(layout);
   if (layout === LayoutMode.MIX && route.name) {
-    const topLevelRoute = findTopLevelRoute(permissionStore.routes, route.name as string);
+    const topLevelRoute = findTopLevelRoute(permissionStore.routes, route.name);
     if (appStore.activeTopMenuPath !== topLevelRoute.path) {
       appStore.activeTopMenu(topLevelRoute.path);
     }
@@ -141,10 +141,10 @@ const handleLayoutChange = (layout: LayoutMode) => {
  * @param tree 树形数据
  * @param findName 查找的名称
  */
-function findTopLevelRoute(tree: any[], findName: string) {
-  let parentMap: any = {};
+function findTopLevelRoute(tree, findName) {
+  let parentMap = {};
 
-  function buildParentMap(node: any, parent: any) {
+  function buildParentMap(node, parent) {
     parentMap[node.name] = parent;
 
     if (node.children) {
