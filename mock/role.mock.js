@@ -214,7 +214,7 @@ export default defineMock([
   {
     url: "roles/:id/menuIds",
     method: ["GET"],
-    body: ({}) => {
+    body: () => {
       return {
         code: "00000",
         data: [
@@ -239,7 +239,7 @@ export default defineMock([
 ]);
 
 // 角色映射表数据
-const roleMap: Record<string, any> = {
+const roleMap = {
   2: {
     id: 2,
     name: "系统管理员",

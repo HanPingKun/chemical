@@ -125,7 +125,7 @@ export default defineMock([
 ]);
 
 // 部门映射表数据
-const deptMap: Record<string, any> = {
+const deptMap = {
   1: {
     id: 1,
     name: "有来技术",

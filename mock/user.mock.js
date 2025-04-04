@@ -223,7 +223,7 @@ export default defineMock([
 ]);
 
 // 用户映射表数据
-const userMap: Record<string, any> = {
+const userMap = {
   2: {
     id: 2,
     username: "admin",

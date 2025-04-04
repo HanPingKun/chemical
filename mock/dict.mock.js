@@ -274,7 +274,7 @@ export default defineMock([
 ]);
 
 // 字典映射表数据
-const dictMap: Record<string, any> = {
+const dictMap = {
   1: {
     id: 1,
     name: "性别",
@@ -284,7 +284,7 @@ const dictMap: Record<string, any> = {
 };
 
 // 字典项映射表数据
-const dictItemMap: Record<string, any> = {
+const dictItemMap = {
   1: {
     id: 1,
     value: "1",

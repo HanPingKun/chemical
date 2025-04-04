@@ -1981,7 +1981,7 @@ export default defineMock([
 ]);
 
 // 菜单映射表数据
-const menuMap: Record<string, any> = {
+const menuMap = {
   1: {
     id: 1,
     parentId: 0,

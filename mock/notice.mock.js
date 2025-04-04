@@ -271,7 +271,7 @@ export default defineMock([
 ]);
 
 // 通知映射表数据
-const noticeMap: Record<string, any> = {
+const noticeMap = {
   1: {
     id: 1,
     title: "v2.12.0 新增系统日志，访问趋势统计功能。",
