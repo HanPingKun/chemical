@@ -247,7 +247,7 @@
             <!-- 格式化时间 -->
             <template v-else-if="col.templet === 'date'">
               <template v-if="col.prop">
-                {{ formatDate(scope.row[col.prop], col.dateFormat ?? 'YYYY-MM-DD HH:mm:ss') }}
+                {{ useDateFormat(scope.row[col.prop], col.dateFormat ?? "YYYY-MM-DD HH:mm:ss") }}
               </template>
             </template>
             <!-- 自定义插槽 -->
@@ -267,10 +267,10 @@
     <!-- 分页 -->
     <el-pagination
       v-if="contentConfig.pagination"
-      v-model:current-page="currentPage"
-      v-model:page-size="pageSize"
+      v-model:current-page="pagination.currentPage"
+      v-model:page-size="pagination.pageSize"
       :page-sizes="[10, 20, 30, 50]"
-      :total="total"
+      :total="pagination.total"
       layout="total, sizes, prev, pager, next, jumper"
       @size-change="handleSizeChange"
       @current-change="handleCurrentChange"
@@ -407,19 +407,25 @@ import { hasAuth } from "@/plugins/permission";
 import { useDateFormat, useThrottleFn } from "@vueuse/core";
 import { genFileId } from "element-plus";
 import ExcelJS from "exceljs";
-import { reactive, ref, computed, watch } from "vue";
-import { formatDate } from "@/utils/formatTime";
-import { usePage } from "./usePage";
+import { reactive, ref } from "vue";
 
 // 定义接收的属性
 const props = defineProps({
   contentConfig: {
     type: Object,
-    required: true
-  }
+    required: true,
+  },
 });
 // 定义自定义事件
-const emit = defineEmits(['addClick', 'exportClick', 'searchClick', 'toolbarClick', 'editClick', 'operatClick', 'filterChange']);
+const emit = defineEmits([
+  "addClick",
+  "exportClick",
+  "searchClick",
+  "toolbarClick",
+  "editClick",
+  "operatClick",
+  "filterChange",
+]);
 
 // 主键
 const pk = props.contentConfig.pk ?? "id";
@@ -627,10 +633,12 @@ function handleOpenImportModal(isFile = false) {
 }
 // 覆盖前一个文件
 function handleFileExceed(files) {
-  uploadRef.value!.clearFiles();
-  const file = files[0];
-  file.uid = genFileId();
-  uploadRef.value!.handleStart(file);
+  if (uploadRef.value) {
+    uploadRef.value.clearFiles();
+    const file = files[0];
+    file.uid = genFileId();
+    uploadRef.value.handleStart(file);
+  }
 }
 // 下载导入模板
 function handleDownloadTemplate() {
@@ -773,21 +781,6 @@ function handleToolbar(name) {
       break;
     default:
       emit("toolbarClick", name);
-      break;
-  }
-}
-
-// 操作列
-function handleOperat(data) {
-  switch (data.name) {
-    case "edit":
-      emit("editClick", data.row);
-      break;
-    case "delete":
-      handleDelete(data.row[pk]);
-      break;
-    default:
-      emit("operatClick", data);
       break;
   }
 }

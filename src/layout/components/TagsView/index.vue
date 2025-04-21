@@ -1,5 +1,6 @@
 <template>
   <div class="tags-container">
+    <!-- 水平滚动容器 -->
     <el-scrollbar class="scroll-container" :vertical="false" @wheel="handleScroll">
       <router-link
         v-for="tag in visitedViews"
@@ -10,18 +11,20 @@
         @click.middle="!isAffix(tag) ? closeSelectedTag(tag) : ''"
         @contextmenu.prevent="openContentMenu(tag, $event)"
       >
-        {{ translateRouteTitle(tag.title) }}
-        <el-icon
+        <!-- 标签文本 -->
+        <span class="tag-text">{{ translateRouteTitle(tag.title) }}</span>
+        <!-- 关闭按钮，固定标签不显示 -->
+        <span
           v-if="!isAffix(tag)"
           class="tag-close-icon"
           @click.prevent.stop="closeSelectedTag(tag)"
         >
-          <Close />
-        </el-icon>
+          ×
+        </span>
       </router-link>
     </el-scrollbar>
 
-    <!-- tag标签操作菜单 -->
+    <!-- 标签右键菜单 -->
     <ul
       v-show="contentMenuVisible"
       class="contextmenu"
@@ -60,20 +63,20 @@ import { useRoute, useRouter } from "vue-router";
 import { resolve } from "path-browserify";
 import { translateRouteTitle } from "@/utils/i18n";
 
-import { usePermissionStore, useTagsViewStore, useSettingsStore, useAppStore } from "@/store";
+import { usePermissionStore, useTagsViewStore } from "@/store";
 
 const { proxy } = getCurrentInstance();
 const router = useRouter();
 const route = useRoute();
 
+// 权限、标签页状态管理
 const permissionStore = usePermissionStore();
 const tagsViewStore = useTagsViewStore();
-const appStore = useAppStore();
 
+// 响应式引用访问已访问的标签视图列表
 const { visitedViews } = storeToRefs(tagsViewStore);
-const settingsStore = useSettingsStore();
-const layout = computed(() => settingsStore.layout);
 
+// 当前选中的标签
 const selectedTag = ref({
   path: "",
   fullPath: "",
@@ -83,10 +86,13 @@ const selectedTag = ref({
   keepAlive: false,
 });
 
+// 固定标签列表
 const affixTags = ref([]);
+// 右键菜单位置
 const left = ref(0);
 const top = ref(0);
 
+// 监听路由变化，添加标签并移动到当前标签位置
 watch(
   route,
   () => {
@@ -94,11 +100,13 @@ watch(
     moveToCurrentTag();
   },
   {
-    immediate: true, //初始化立即执行
+    immediate: true, // 初始化立即执行
   }
 );
 
-const contentMenuVisible = ref(false); // 右键菜单是否显示
+// 右键菜单显示状态
+const contentMenuVisible = ref(false);
+// 监听右键菜单显示状态，添加或移除点击事件监听器
 watch(contentMenuVisible, (value) => {
   if (value) {
     document.body.addEventListener("click", closeContentMenu);
@@ -109,11 +117,15 @@ watch(contentMenuVisible, (value) => {
 
 /**
  * 过滤出需要固定的标签
+ * @param {Array} routes 路由配置
+ * @param {string} basePath 基础路径
+ * @returns {Array} 固定标签列表
  */
 function filterAffixTags(routes, basePath = "/") {
   let tags = [];
   routes.forEach((route) => {
     const tagPath = resolve(basePath, route.path);
+    // 当路由设置了meta.affix属性时，加入固定标签列表
     if (route.meta?.affix) {
       tags.push({
         path: tagPath,
@@ -124,6 +136,7 @@ function filterAffixTags(routes, basePath = "/") {
         keepAlive: route.meta?.keepAlive,
       });
     }
+    // 递归处理子路由
     if (route.children) {
       const tempTags = filterAffixTags(route.children, basePath + route.path);
       if (tempTags.length >= 1) {
@@ -134,17 +147,23 @@ function filterAffixTags(routes, basePath = "/") {
   return tags;
 }
 
+/**
+ * 初始化标签列表，添加需要固定的标签
+ */
 function initTags() {
   const tags = filterAffixTags(permissionStore.routes);
   affixTags.value = tags;
   for (const tag of tags) {
-    // Must have tag name
+    // 必须有标签名称才添加
     if (tag.name) {
       tagsViewStore.addVisitedView(tag);
     }
   }
 }
 
+/**
+ * 添加当前路由到标签列表
+ */
 function addTags() {
   if (route.meta.title) {
     tagsViewStore.addView({
@@ -159,13 +178,15 @@ function addTags() {
   }
 }
 
+/**
+ * 移动到当前标签位置
+ * 使用 nextTick() 确保在更新 tagsView 组件之前滚动到正确位置
+ */
 function moveToCurrentTag() {
-  // 使用 nextTick() 的目的是确保在更新 tagsView 组件之前，scrollPaneRef 对象已经滚动到了正确的位置。
   nextTick(() => {
     for (const tag of visitedViews.value) {
       if (tag.path === route.path) {
-        // when query is different then update
-        // route.query = { ...route.query, ...tag.query };
+        // 当查询参数不同时更新标签
         if (tag.fullPath !== route.fullPath) {
           tagsViewStore.updateVisitedView({
             name: route.name,
@@ -182,10 +203,19 @@ function moveToCurrentTag() {
   });
 }
 
+/**
+ * 判断标签是否为固定标签
+ * @param {Object} tag 标签对象
+ * @returns {boolean} 是否为固定标签
+ */
 function isAffix(tag) {
   return tag?.affix;
 }
 
+/**
+ * 判断选中的标签是否为第一个可见标签
+ * @returns {boolean} 是否为第一个可见标签
+ */
 function isFirstView() {
   return (
     selectedTag.value.path === "/dashboard" ||
@@ -193,6 +223,10 @@ function isFirstView() {
   );
 }
 
+/**
+ * 判断选中的标签是否为最后一个可见标签
+ * @returns {boolean} 是否为最后一个可见标签
+ */
 function isLastView() {
   return (
     selectedTag.value.fullPath ===
@@ -200,6 +234,10 @@ function isLastView() {
   );
 }
 
+/**
+ * 刷新选中的标签页
+ * @param {Object} view 标签对象
+ */
 function refreshSelectedTag(view) {
   tagsViewStore.delCachedView(view);
   const { fullPath } = view;
@@ -208,6 +246,10 @@ function refreshSelectedTag(view) {
   });
 }
 
+/**
+ * 关闭选中的标签页
+ * @param {Object} view 标签对象
+ */
 function closeSelectedTag(view) {
   tagsViewStore.delView(view).then((res) => {
     if (tagsViewStore.isActive(view)) {
@@ -216,6 +258,9 @@ function closeSelectedTag(view) {
   });
 }
 
+/**
+ * 关闭选中标签左侧的所有标签
+ */
 function closeLeftTags() {
   tagsViewStore.delLeftViews(selectedTag.value).then((res) => {
     if (!res.visitedViews.find((item) => item.path === route.path)) {
@@ -224,6 +269,9 @@ function closeLeftTags() {
   });
 }
 
+/**
+ * 关闭选中标签右侧的所有标签
+ */
 function closeRightTags() {
   tagsViewStore.delRightViews(selectedTag.value).then((res) => {
     if (!res.visitedViews.find((item) => item.path === route.path)) {
@@ -232,6 +280,9 @@ function closeRightTags() {
   });
 }
 
+/**
+ * 关闭除选中标签外的所有标签
+ */
 function closeOtherTags() {
   router.push(selectedTag.value);
   tagsViewStore.delOtherViews(selectedTag.value).then(() => {
@@ -239,6 +290,10 @@ function closeOtherTags() {
   });
 }
 
+/**
+ * 关闭所有标签
+ * @param {Object} view 标签对象
+ */
 function closeAllTags(view) {
   tagsViewStore.delAllViews().then((res) => {
     tagsViewStore.toLastView(res.visitedViews, view);
@@ -247,18 +302,21 @@ function closeAllTags(view) {
 
 /**
  * 打开右键菜单
+ * @param {Object} tag 标签对象
+ * @param {Event} e 鼠标事件
  */
 function openContentMenu(tag, e) {
   const menuMinWidth = 105;
-  const offsetLeft = proxy?.$el.getBoundingClientRect().left; // container margin left
-  const offsetWidth = proxy?.$el.offsetWidth; // container width
-  const maxLeft = offsetWidth - menuMinWidth; // left boundary
-  const left = e.clientX - offsetLeft + 15; // 15: margin right
+  const offsetLeft = proxy?.$el.getBoundingClientRect().left; // 容器左边距
+  const offsetWidth = proxy?.$el.offsetWidth; // 容器宽度
+  const maxLeft = offsetWidth - menuMinWidth; // 左边界
+  const leftPosition = e.clientX - offsetLeft + 15; // 15: 右边距
 
-  if (left > maxLeft) {
+  // 确保菜单不超出容器右边界
+  if (leftPosition > maxLeft) {
     left.value = maxLeft;
   } else {
-    left.value = left;
+    left.value = leftPosition;
   }
   top.value = e.clientY;
   contentMenuVisible.value = true;
@@ -273,7 +331,8 @@ function closeContentMenu() {
 }
 
 /**
- * 处理鼠标滚轮事件
+ * 处理鼠标滚轮事件，实现水平滚动
+ * @param {WheelEvent} e 滚轮事件
  */
 function handleScroll(e) {
   const eventDelta = e.wheelDelta || -e.deltaY * 40;
@@ -281,6 +340,7 @@ function handleScroll(e) {
   $scrollWrapper.scrollLeft = $scrollWrapper.scrollLeft + eventDelta / 4;
 }
 
+// 组件挂载时初始化标签
 onMounted(() => {
   initTags();
 });
@@ -288,18 +348,18 @@ onMounted(() => {
 
 <style lang="scss" scoped>
 .tags-container {
-  height: 34px;
   width: 100%;
-  background: #fff;
-  border-bottom: 1px solid #d8dce5;
-  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.12), 0 0 3px 0 rgba(0, 0, 0, 0.04);
-
+  height: 34px;
+  background-color: var(--el-bg-color);
+  border: 1px solid var(--el-border-color-light);
+  box-shadow: 0 1px 1px var(--el-box-shadow-light);
+  /* 滚动容器样式 */
   .scroll-container {
     position: relative;
     width: 100%;
     height: 100%;
-    white-space: nowrap;
     overflow: hidden;
+    white-space: nowrap;
 
     :deep(.el-scrollbar__bar) {
       bottom: 0px;
@@ -310,82 +370,106 @@ onMounted(() => {
     }
   }
 
+  /* 标签项样式 */
   .tags-item {
-    display: inline-block;
     position: relative;
+    display: inline-flex;
+    align-items: center;
     height: 26px;
-    line-height: 26px;
-    border: 1px solid #d8dce5;
-    color: #495060;
-    background: #fff;
     padding: 0 8px;
-    font-size: 12px;
-    margin-left: 5px;
     margin-top: 4px;
+    margin-left: 5px;
+    font-size: 12px;
+    line-height: 26px;
+    color: var(--el-text-color-primary);
+    background: var(--el-bg-color);
+    border: 1px solid var(--el-border-color);
+
+    /* 第一个和最后一个标签的边距调整 */
     &:first-of-type {
       margin-left: 15px;
     }
     &:last-of-type {
       margin-right: 15px;
     }
+
+    /* 标签文本样式 */
+    .tag-text {
+      display: inline-block;
+      vertical-align: middle;
+    }
+
+    /* 关闭按钮样式 - 移动到active样式之前 */
+    .tag-close-icon {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 16px;
+      height: 16px;
+      margin-left: 5px;
+      font-size: 12px;
+      font-weight: bold;
+      color: var(--el-text-color-secondary);
+      cursor: pointer;
+      border-radius: 50%;
+      transition: all 0.2s ease;
+
+      &:hover {
+        color: var(--el-color-white);
+        background-color: var(--el-text-color-placeholder);
+      }
+    }
+
+    /* 活动标签样式 */
     &.active {
-      background-color: #42b983;
-      color: #fff;
-      border-color: #42b983;
+      color: var(--el-color-white);
+      background-color: var(--el-color-primary);
+      border-color: var(--el-color-primary);
       &::before {
-        content: "";
-        background: #fff;
+        position: relative;
         display: inline-block;
         width: 8px;
         height: 8px;
-        border-radius: 50%;
-        position: relative;
         margin-right: 2px;
+        content: "";
+        background: var(--el-color-white);
+        border-radius: 50%;
+      }
+
+      /* 活动标签关闭按钮样式 */
+      .tag-close-icon {
+        color: var(--el-color-white);
+
+        &:hover {
+          color: var(--el-color-white);
+          background-color: rgba(255, 255, 255, 0.3);
+        }
       }
     }
   }
 
+  /* 右键菜单样式 */
   .contextmenu {
-    margin: 0;
-    background: #fff;
-    z-index: 3000;
     position: absolute;
-    list-style-type: none;
+    z-index: 3000;
     padding: 5px 0;
-    border-radius: 4px;
+    margin: 0;
     font-size: 12px;
     font-weight: 400;
-    color: #333;
-    box-shadow: 2px 2px 3px 0 rgba(0, 0, 0, 0.3);
+    color: var(--el-text-color-primary);
+    list-style-type: none;
+    background: var(--el-bg-color);
+    border-radius: 4px;
+    box-shadow: var(--el-box-shadow-light);
+
+    /* 菜单项样式 */
     li {
-      margin: 0;
       padding: 7px 16px;
+      margin: 0;
       cursor: pointer;
       &:hover {
-        background: #eee;
+        background: var(--el-fill-color-light);
       }
-    }
-  }
-}
-
-//reset element css of el-icon-close
-.tags-item {
-  .el-icon-close {
-    width: 16px;
-    height: 16px;
-    vertical-align: 2px;
-    border-radius: 50%;
-    text-align: center;
-    transition: all 0.3s cubic-bezier(0.645, 0.045, 0.355, 1);
-    transform-origin: 100% 50%;
-    &:before {
-      transform: scale(0.6);
-      display: inline-block;
-      vertical-align: -3px;
-    }
-    &:hover {
-      background-color: #b4bccc;
-      color: #fff;
     }
   }
 }

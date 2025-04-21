@@ -12,4 +12,7 @@ export const FormTypeEnum = {
   DATE: { value: 8, label: "日期框" },
   DATE_TIME: { value: 9, label: "日期时间框" },
   HIDDEN: { value: 10, label: "隐藏域" },
-}; 
+  IMAGE: { value: 11, label: "图片上传" },
+  FILE: { value: 12, label: "文件上传" },
+  EDITOR: { value: 13, label: "富文本编辑器" },
+};

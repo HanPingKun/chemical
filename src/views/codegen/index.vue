@@ -414,6 +414,7 @@ defineOptions({
 import Sortable from "sortablejs";
 import "codemirror/mode/javascript/javascript.js";
 import Codemirror from "codemirror-editor-vue3";
+import { useClipboard } from "@vueuse/core";
 
 import { FormTypeEnum } from "@/enums/codegen/form.enum";
 import { QueryTypeEnum } from "@/enums/codegen/query.enum";
@@ -481,13 +482,13 @@ const queryTypeOptions = [
 
 const formTypeOptions = [
   { label: "文本框", value: FormTypeEnum.INPUT.value },
-  { label: "文本域", value: FormTypeEnum.TEXTAREA.value },
-  { label: "数字框", value: FormTypeEnum.NUMBER.value },
+  { label: "文本域", value: FormTypeEnum.TEXT_AREA.value },
+  { label: "数字框", value: FormTypeEnum.INPUT_NUMBER.value },
   { label: "下拉框", value: FormTypeEnum.SELECT.value },
   { label: "单选框", value: FormTypeEnum.RADIO.value },
-  { label: "复选框", value: FormTypeEnum.CHECKBOX.value },
+  { label: "复选框", value: FormTypeEnum.CHECK_BOX.value },
   { label: "日期选择器", value: FormTypeEnum.DATE.value },
-  { label: "日期时间选择器", value: FormTypeEnum.DATETIME.value },
+  { label: "日期时间选择器", value: FormTypeEnum.DATE_TIME.value },
   { label: "图片上传", value: FormTypeEnum.IMAGE.value },
   { label: "文件上传", value: FormTypeEnum.FILE.value },
   { label: "富文本编辑器", value: FormTypeEnum.EDITOR.value },
@@ -829,9 +830,15 @@ function getFileTreeNodeIcon(label) {
   return "file";
 }
 
+const { copy } = useClipboard();
+
 const handleCopyCode = () => {
   if (code.value) {
     copy(code.value);
+    copied.value = true;
+    setTimeout(() => {
+      copied.value = false;
+    }, 2000);
   }
 };
 
