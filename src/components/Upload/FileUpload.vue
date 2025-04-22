@@ -241,7 +241,7 @@ function handleDownload(file) {
 }
 
 /** 获取一个不重复的id */
-function getUid(): number {
+function getUid() {
   // 时间戳左移13位（相当于乘以8192） + 4位随机数
   return (Date.now() << 13) | Math.floor(Math.random() * 8192);
 }

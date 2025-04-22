@@ -142,14 +142,13 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed } from "vue";
 import { useResizeObserver } from "@vueuse/core";
 
 // 定义接收的属性
-const props = withDefaults(defineProps({
+const props = defineProps({
   selectConfig: {
     type: Object,
-    required: true,
+    required: false,
     default: () => ({
       width: "100%",
       placeholder: "请选择",
@@ -158,15 +157,13 @@ const props = withDefaults(defineProps({
       pk: "id",
       multiple: false,
       formItems: [],
-      tableColumns: []
-    })
+      tableColumns: [],
+    }),
   },
   text: {
     type: String,
-    default: ""
-  }
-}), {
-  text: ""
+    default: "",
+  },
 });
 
 // 自定义事件
@@ -193,7 +190,7 @@ const pageSize = 10;
 // 搜索参数
 const queryParams = reactive({
   pageNum: 1,
-  pageSize: pageSize
+  pageSize: pageSize,
 });
 
 // 计算popover的宽度
@@ -226,7 +223,7 @@ async function fetchPageData(resetPage = false) {
   loading.value = true;
   try {
     const res = await props.selectConfig.indexAction(queryParams);
-    pageData.value = res.rows;
+    pageData.value = res.list;
     total.value = res.total;
   } finally {
     loading.value = false;
@@ -234,17 +231,17 @@ async function fetchPageData(resetPage = false) {
 }
 // 表格操作
 const tableRef = ref();
-// 选中的行
-const selection = ref([]);
+// 选中的行（用于存储选中状态）
+const SELECTION = ref([]);
 // 选择行
-function handleSelect(selection, row) {
+function handleSelect(_selection, row) {
   if (!isMultiple) {
     tableRef.value.clearSelection();
     tableRef.value.toggleRowSelection(row, true);
   }
 }
 // 全选
-function handleSelectAll(selection) {
+function handleSelectAll(_selection) {
   if (!isMultiple) {
     tableRef.value.clearSelection();
   }

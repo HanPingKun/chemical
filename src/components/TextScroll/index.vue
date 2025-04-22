@@ -46,49 +46,42 @@ import { useElementHover } from "@vueuse/core";
 const emit = defineEmits(["close"]);
 
 // 定义组件属性及默认值
-const props = withDefaults(defineProps({
+const props = defineProps({
   /** 滚动文本内容（必填） */
   text: {
     type: String,
-    required: true
+    required: true,
   },
   /** 滚动速度，数值越小滚动越慢 */
   speed: {
     type: Number,
-    default: 70
+    default: 70,
   },
   /** 滚动方向：左侧或右侧 */
   direction: {
     type: String,
-    default: "left"
+    default: "left",
   },
   /** 样式类型 */
   type: {
     type: String,
-    default: "default"
+    default: "default",
   },
   /** 是否显示关闭按钮 */
   showClose: {
     type: Boolean,
-    default: false
+    default: false,
   },
   /** 是否启用打字机效果 */
   typewriter: {
     type: Boolean,
-    default: false
+    default: false,
   },
   /** 打字机效果的速度，数值越小打字越快 */
   typewriterSpeed: {
     type: Number,
-    default: 100
-  }
-}), {
-  speed: 70,
-  direction: "left",
-  type: "default",
-  showClose: false,
-  typewriter: false,
-  typewriterSpeed: 100
+    default: 100,
+  },
 });
 
 // 容器元素引用
@@ -284,8 +277,8 @@ watch(
 
     &.scrolling {
       animation: scroll var(--animation-duration) linear infinite;
-      animation-play-state: var(--animation-play-state);
       animation-direction: var(--animation-direction);
+      animation-play-state: var(--animation-play-state);
     }
 
     .scroll-item {
