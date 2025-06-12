@@ -10,7 +10,7 @@
           </template>
           <el-form :model="form" label-width="100px" @submit.prevent="getPredictedYield">
             <el-form-item label="smiles">
-              <el-input v-model="form.smiles" placeholder="输入化学反应的 SMILES 表达式"></el-input>
+              <el-input v-model="form.smiles" placeholder="输入jiugai的 SMILES 表达式"></el-input>
             </el-form-item>
             <el-form-item>
               <el-button type="primary" @click="getPredictedYield">提交</el-button>
@@ -20,7 +20,7 @@
         <el-tab-pane label="Config">
           <template #label>
             <span class="custom-tabs-label">
-              <span>反应物产物smiles</span>
+              <span>z</span>
             </span>
           </template>
           <el-form
