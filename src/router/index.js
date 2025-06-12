@@ -82,4 +82,4 @@ export function setupRouter(app) {
   app.use(router);
 }
 
-export default router; 
+export default router;
