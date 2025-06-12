@@ -31,8 +31,6 @@ export const constantRoutes = [
       {
         path: "dashboard",
         component: () => import("@/views/dashboard/index.vue"),
-        // 用于 keep-alive 功能，需要与 SFC 中自动推导或显式声明的组件名称一致
-        // 参考文档: https://cn.vuejs.org/guide/built-ins/keep-alive.html#include-exclude
         name: "Dashboard",
         meta: {
           title: "dashboard",
@@ -62,6 +60,12 @@ export const constantRoutes = [
         name: "MyNotice",
         component: () => import("@/views/system/notice/components/MyNotice.vue"),
         meta: { title: "我的通知", icon: "user", hidden: true },
+      },
+      {
+        path: "task-detail",
+        name: "TaskDetail",
+        component: () => import("@/views/functionShow/XinxiChouqu/TaskDetail.vue"),
+        meta: { title: "任务详情", hidden: true },
       },
     ],
   },
