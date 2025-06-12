@@ -21,6 +21,58 @@ export default defineMock([
           },
           children: [
             {
+              path: "XinxiChouqu",
+              component: "functionShow/XinxiChouqu/index",
+              name: "XinxiChouqu",
+              meta: {
+                title: "信息抽取",
+                icon: "el-icon-User",
+                hidden: false,
+                keepAlive: true,
+                alwaysShow: false,
+                params: null,
+              },
+            },
+            {
+              path: "ChanwuYuce",
+              component: "functionShow/ChanwuYuce/index",
+              name: "ChanwuYuce",
+              meta: {
+                title: "产物预测",
+                icon: "el-icon-User",
+                hidden: false,
+                keepAlive: true,
+                alwaysShow: false,
+                params: null,
+              },
+            },
+            {
+              path: "TiaojianYuce",
+              component: "functionShow/TiaojianYuce/index",
+              name: "TiaojianYuce",
+              meta: {
+                title: "条件预测",
+                icon: "el-icon-User",
+                hidden: false,
+                keepAlive: true,
+                alwaysShow: false,
+                params: null,
+              },
+            },
+            {
+              path: "LeixingYuce",
+              component: "functionShow/LeixingYuce/index",
+              name: "LeixingYuce",
+              meta: {
+                title: "类型预测",
+                icon: "el-icon-User",
+                hidden: false,
+                keepAlive: true,
+                alwaysShow: false,
+                params: null,
+              },
+            },
+            {
               path: "ChanlvYuce",
               component: "functionShow/ChanlvYuce/index",
               name: "ChanlvYuce",
@@ -46,7 +98,7 @@ export default defineMock([
                 params: null,
               },
             },
-          ]
+          ],
         },
         {
           path: "/system",
@@ -590,8 +642,8 @@ export default defineMock([
               sort: 1,
               visible: 1,
               icon: "el-icon-User",
-            }
-          ]
+            },
+          ],
         },
         // {
         //   id: 1,
