@@ -125,6 +125,12 @@
         align="center"
         sortable="custom"
       ></el-table-column>
+      <el-table-column
+        prop="createTime"
+        label="创建时间"
+        align="center"
+        sortable="custom"
+      ></el-table-column>
       <el-table-column prop="status" label="状态" align="center">
         <template #default="scope">
           <el-tag :type="getStatusType(scope.row.status)" :class="['status-tag', 'el-tag--mini']">
@@ -132,17 +138,11 @@
           </el-tag>
         </template>
       </el-table-column>
-      <el-table-column prop="detail" label="详情" align="center">
+      <el-table-column prop="detail" label="操作" align="center">
         <template #default="scope">
           <el-button type="text" size="mini" @click="viewDetail(scope.row)">查看详情</el-button>
         </template>
       </el-table-column>
-      <el-table-column
-        prop="createTime"
-        label="创建时间"
-        align="center"
-        sortable="custom"
-      ></el-table-column>
     </el-table>
 
     <!-- 分页控件 -->
