@@ -6,10 +6,18 @@
       <h2>任务创建区</h2>
     </div>
     <div class="task-create-area">
-      <el-button type="primary" class="task-btn">化合反应文本信息抽取</el-button>
-      <el-button type="primary" class="task-btn">分子结构图SMILES识别</el-button>
-      <el-button type="primary" class="task-btn">反应示意图信息挖掘</el-button>
-      <el-button type="primary" class="task-btn">Reaxys文献多模态信息抽取</el-button>
+      <el-button type="primary" class="task-btn" @click="openReactionDialog">
+        化合反应文本信息抽取
+      </el-button>
+      <el-button type="primary" class="task-btn" @click="openSmilesDialog">
+        分子结构图SMILES识别
+      </el-button>
+      <el-button type="primary" class="task-btn" @click="openReactionDiagramDialog">
+        反应示意图信息挖掘
+      </el-button>
+      <el-button type="primary" class="task-btn" @click="openReaxysDialog">
+        Reaxys文献多模态信息抽取
+      </el-button>
     </div>
 
     <!-- 历史任务及结果查询区标题 -->
@@ -149,11 +157,141 @@
         @current-change="handleCurrentChange"
       ></el-pagination>
     </div>
+
+    <!-- 化合反应文本输入对话框 -->
+    <el-dialog
+      v-model="reactionDialogVisible"
+      title="创建化合反应文本信息抽取任务"
+      width="50%"
+      center
+    >
+      <el-form
+        ref="reactionFormRef"
+        :model="reactionForm"
+        :rules="reactionRules"
+        label-width="100px"
+      >
+        <el-form-item label="化合文本" prop="reactionText">
+          <el-input
+            v-model="reactionForm.reactionText"
+            type="textarea"
+            :rows="5"
+            placeholder="请输入化学有机合成反应文本描述（例如：氢气和氧气在点燃条件下生成水）"
+          ></el-input>
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <span class="dialog-footer">
+          <el-button @click="reactionDialogVisible = false">取消</el-button>
+          <el-button type="primary" @click="submitReactionForm">提交</el-button>
+        </span>
+      </template>
+    </el-dialog>
+
+    <!-- 分子结构图SMILES识别对话框 - 图片上传 -->
+    <el-dialog
+      v-model="smilesDialogVisible"
+      title="创建分子结构图SMILES识别任务"
+      width="50%"
+      center
+    >
+      <el-form ref="smilesFormRef" :model="smilesForm" :rules="smilesRules" label-width="ml-auto">
+        <el-form-item label="仅支持JPG、PNG格式，最多上传5张图片" prop="imageFiles">
+          <el-upload
+            v-model="smilesForm.imageFiles"
+            :action="mockUploadAction"
+            multiple
+            :limit="5"
+            :on-exceed="handleExceed"
+            :auto-upload="false"
+            :file-list="smilesForm.uploadedFiles"
+            list-type="picture"
+          >
+            <el-button type="primary" size="small">选择图片</el-button>
+          </el-upload>
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <span class="dialog-footer">
+          <el-button @click="smilesDialogVisible = false">取消</el-button>
+          <el-button type="primary" @click="submitSmilesForm">提交</el-button>
+        </span>
+      </template>
+    </el-dialog>
+
+    <!-- 反应示意图信息挖掘对话框 - 图片上传 -->
+    <el-dialog
+      v-model="reactionDiagramDialogVisible"
+      title="创建反应示意图信息挖掘任务"
+      width="50%"
+      center
+    >
+      <el-form
+        ref="reactionDiagramFormRef"
+        :model="reactionDiagramForm"
+        :rules="reactionDiagramRules"
+        label-width="ml-auto"
+      >
+        <el-form-item label="仅支持JPG、PNG格式，最多上传5张图片" prop="imageFiles">
+          <el-upload
+            v-model="reactionDiagramForm.imageFiles"
+            :action="mockUploadAction"
+            multiple
+            :limit="5"
+            :on-exceed="handleExceed"
+            :auto-upload="false"
+            :file-list="reactionDiagramForm.uploadedFiles"
+            list-type="picture"
+          >
+            <el-button type="primary" size="small">选择图片</el-button>
+          </el-upload>
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <span class="dialog-footer">
+          <el-button @click="reactionDiagramDialogVisible = false">取消</el-button>
+          <el-button type="primary" @click="submitReactionDiagramForm">提交</el-button>
+        </span>
+      </template>
+    </el-dialog>
+
+    <!-- Reaxys文献多模态信息抽取对话框 - PDF上传 -->
+    <el-dialog
+      v-model="reaxysDialogVisible"
+      title="创建Reaxys文献多模态信息抽取任务"
+      width="50%"
+      center
+    >
+      <el-form ref="reaxysFormRef" :model="reaxysForm" :rules="reaxysRules" label-width="ml-auto">
+        <el-form-item label="仅支持PDF格式，且最多上传3个文件" prop="pdfFiles">
+          <el-upload
+            v-model="reaxysForm.pdfFiles"
+            :action="mockUploadAction"
+            multiple
+            :limit="3"
+            :on-exceed="handleExceed"
+            :auto-upload="false"
+            :file-list="reaxysForm.uploadedFiles"
+            list-type="text"
+          >
+            <el-button type="primary" size="small">选择PDF文件</el-button>
+          </el-upload>
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <span class="dialog-footer">
+          <el-button @click="reaxysDialogVisible = false">取消</el-button>
+          <el-button type="primary" @click="submitReaxysForm">提交</el-button>
+        </span>
+      </template>
+    </el-dialog>
   </div>
 </template>
+
 <script setup>
-import { ref, reactive, onMounted } from "vue";
+import { ref, reactive, onMounted, nextTick } from "vue";
 import { useRouter } from "vue-router";
+import { ElMessage } from "element-plus";
 
 // 引入路由
 const router = useRouter();
@@ -273,6 +411,55 @@ const queryParams = reactive({
 // 表格数据
 const tableData = ref([]);
 
+// 化合反应对话框相关数据
+const reactionDialogVisible = ref(false);
+const reactionFormRef = ref(null);
+const reactionForm = reactive({
+  reactionText: "",
+});
+const reactionRules = {
+  reactionText: [
+    { required: true, message: "请输入化合反应文本", trigger: "blur" },
+    { min: 5, message: "反应文本至少需要5个字符", trigger: "blur" },
+  ],
+};
+
+// 分子结构SMILES识别对话框相关数据
+const smilesDialogVisible = ref(false);
+const smilesFormRef = ref(null);
+const smilesForm = reactive({
+  imageFiles: [],
+  uploadedFiles: [],
+});
+const smilesRules = {
+  imageFiles: [{ required: true, message: "请至少上传一张图片", trigger: "change" }],
+};
+
+// 反应示意图信息挖掘对话框相关数据
+const reactionDiagramDialogVisible = ref(false);
+const reactionDiagramFormRef = ref(null);
+const reactionDiagramForm = reactive({
+  imageFiles: [],
+  uploadedFiles: [],
+});
+const reactionDiagramRules = {
+  imageFiles: [{ required: true, message: "请至少上传一张图片", trigger: "change" }],
+};
+
+// Reaxys文献对话框相关数据
+const reaxysDialogVisible = ref(false);
+const reaxysFormRef = ref(null);
+const reaxysForm = reactive({
+  pdfFiles: [],
+  uploadedFiles: [],
+});
+const reaxysRules = {
+  pdfFiles: [{ required: true, message: "请至少上传一个PDF文件", trigger: "change" }],
+};
+
+// 模拟上传地址
+const mockUploadAction = "https://mock-api.com/upload";
+
 // 获取状态文本
 const getStatusText = (status) => {
   switch (status) {
@@ -345,11 +532,11 @@ const fetchTasks = async () => {
   // 根据日期范围筛选
   if (queryParams.dateRange && queryParams.dateRange.length === 2) {
     const [startDate, endDate] = queryParams.dateRange;
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+    end.setHours(23, 59, 59, 999);
     filteredData = filteredData.filter((item) => {
       const taskDate = new Date(item.createTime);
-      const start = new Date(startDate);
-      const end = new Date(endDate);
-      end.setHours(23, 59, 59, 999);
       return taskDate >= start && taskDate <= end;
     });
   }
@@ -386,6 +573,256 @@ const fetchTasks = async () => {
   loading.value = false;
 };
 
+// 打开反应对话框
+const openReactionDialog = () => {
+  // 重置表单数据
+  reactionForm.reactionText = "";
+  // 重置表单验证状态
+  nextTick(() => {
+    if (reactionFormRef.value) {
+      reactionFormRef.value.resetFields();
+    }
+  });
+  // 显示对话框
+  reactionDialogVisible.value = true;
+};
+
+// 打开SMILES对话框
+const openSmilesDialog = () => {
+  // 重置表单数据
+  smilesForm.imageFiles = [];
+  smilesForm.uploadedFiles = [];
+  // 重置表单验证状态
+  nextTick(() => {
+    if (smilesFormRef.value) {
+      smilesFormRef.value.resetFields();
+    }
+  });
+  // 显示对话框
+  smilesDialogVisible.value = true;
+};
+
+// 打开反应示意图对话框
+const openReactionDiagramDialog = () => {
+  // 重置表单数据
+  reactionDiagramForm.imageFiles = [];
+  reactionDiagramForm.uploadedFiles = [];
+  // 重置表单验证状态
+  nextTick(() => {
+    if (reactionDiagramFormRef.value) {
+      reactionDiagramFormRef.value.resetFields();
+    }
+  });
+  // 显示对话框
+  reactionDiagramDialogVisible.value = true;
+};
+
+// 打开Reaxys对话框
+const openReaxysDialog = () => {
+  // 重置表单数据
+  reaxysForm.pdfFiles = [];
+  reaxysForm.uploadedFiles = [];
+  // 重置表单验证状态
+  nextTick(() => {
+    if (reaxysFormRef.value) {
+      reaxysFormRef.value.resetFields();
+    }
+  });
+  // 显示对话框
+  reaxysDialogVisible.value = true;
+};
+
+// 处理文件数量超出限制
+const handleExceed = (files, fileList) => {
+  const limit = files.length > fileList.length ? files.length : fileList.length;
+  ElMessage.warning(`最多只能上传${limit}个文件`);
+};
+
+// 提交反应表单
+const submitReactionForm = () => {
+  if (!reactionFormRef.value) return;
+
+  reactionFormRef.value.validate((valid) => {
+    if (valid) {
+      // 模拟提交表单
+      handleReactionSubmit();
+    } else {
+      console.log("表单验证失败");
+      return false;
+    }
+  });
+};
+
+// 提交SMILES表单
+const submitSmilesForm = () => {
+  if (!smilesFormRef.value) return;
+
+  smilesFormRef.value.validate((valid) => {
+    if (valid && smilesForm.uploadedFiles.length > 0) {
+      // 模拟提交表单
+      handleSmilesSubmit();
+    } else {
+      ElMessage.warning("请上传图片文件");
+      return false;
+    }
+  });
+};
+
+// 提交反应示意图表单
+const submitReactionDiagramForm = () => {
+  if (!reactionDiagramFormRef.value) return;
+
+  reactionDiagramFormRef.value.validate((valid) => {
+    if (valid && reactionDiagramForm.uploadedFiles.length > 0) {
+      // 模拟提交表单
+      handleReactionDiagramSubmit();
+    } else {
+      ElMessage.warning("请上传图片文件");
+      return false;
+    }
+  });
+};
+
+// 提交Reaxys表单
+const submitReaxysForm = () => {
+  if (!reaxysFormRef.value) return;
+
+  reaxysFormRef.value.validate((valid) => {
+    if (valid && reaxysForm.uploadedFiles.length > 0) {
+      // 模拟提交表单
+      handleReaxysSubmit();
+    } else {
+      ElMessage.warning("请上传PDF文件");
+      return false;
+    }
+  });
+};
+
+// 处理反应表单提交
+const handleReactionSubmit = () => {
+  // 模拟API请求延迟
+  loading.value = true;
+  setTimeout(() => {
+    // 模拟创建新任务
+    const newTaskId = (mockApiData.length + 1).toString();
+    const newTask = {
+      taskId: newTaskId,
+      taskCode: TASK_TYPE.TEXT,
+      taskType: "化学有机合成文本描述信息抽取",
+      createTime: new Date().toISOString().slice(0, 19).replace("T", " "),
+      status: TASK_STATUS.RUNNING,
+      reactionText: reactionForm.reactionText, // 保存输入的反应文本
+    };
+
+    // 添加到模拟数据
+    mockApiData.unshift(newTask);
+
+    // 刷新任务列表
+    fetchTasks();
+
+    // 关闭对话框
+    reactionDialogVisible.value = false;
+
+    // 提示用户
+    ElMessage.success("任务创建成功，正在处理中...");
+  }, 800);
+};
+
+// 处理SMILES表单提交
+const handleSmilesSubmit = () => {
+  // 模拟API请求延迟
+  loading.value = true;
+  setTimeout(() => {
+    // 模拟创建新任务
+    const newTaskId = (mockApiData.length + 1).toString();
+    const newTask = {
+      taskId: newTaskId,
+      taskCode: TASK_TYPE.SMILES,
+      taskType: "分子结构SMILES转换",
+      createTime: new Date().toISOString().slice(0, 19).replace("T", " "),
+      status: TASK_STATUS.RUNNING,
+      fileCount: smilesForm.uploadedFiles.length, // 保存文件数量
+      fileNames: smilesForm.uploadedFiles.map((file) => file.name), // 保存文件名
+    };
+
+    // 添加到模拟数据
+    mockApiData.unshift(newTask);
+
+    // 刷新任务列表
+    fetchTasks();
+
+    // 关闭对话框
+    smilesDialogVisible.value = false;
+
+    // 提示用户
+    ElMessage.success(`成功提交${smilesForm.uploadedFiles.length}张图片，任务正在处理中...`);
+  }, 800);
+};
+
+// 处理反应示意图表单提交
+const handleReactionDiagramSubmit = () => {
+  // 模拟API请求延迟
+  loading.value = true;
+  setTimeout(() => {
+    // 模拟创建新任务
+    const newTaskId = (mockApiData.length + 1).toString();
+    const newTask = {
+      taskId: newTaskId,
+      taskCode: TASK_TYPE.REACTION,
+      taskType: "反应方程式结构化信息提取",
+      createTime: new Date().toISOString().slice(0, 19).replace("T", " "),
+      status: TASK_STATUS.RUNNING,
+      fileCount: reactionDiagramForm.uploadedFiles.length,
+      fileNames: reactionDiagramForm.uploadedFiles.map((file) => file.name),
+    };
+
+    // 添加到模拟数据
+    mockApiData.unshift(newTask);
+
+    // 刷新任务列表
+    fetchTasks();
+
+    // 关闭对话框
+    reactionDiagramDialogVisible.value = false;
+
+    // 提示用户
+    ElMessage.success(
+      `成功提交${reactionDiagramForm.uploadedFiles.length}张图片，任务正在处理中...`
+    );
+  }, 800);
+};
+
+// 处理Reaxys表单提交
+const handleReaxysSubmit = () => {
+  // 模拟API请求延迟
+  loading.value = true;
+  setTimeout(() => {
+    // 模拟创建新任务
+    const newTaskId = (mockApiData.length + 1).toString();
+    const newTask = {
+      taskId: newTaskId,
+      taskCode: TASK_TYPE.REAXYS,
+      taskType: "Reaxys化学文献ETE结构化信息抽取",
+      createTime: new Date().toISOString().slice(0, 19).replace("T", " "),
+      status: TASK_STATUS.RUNNING,
+      fileCount: reaxysForm.uploadedFiles.length,
+      fileNames: reaxysForm.uploadedFiles.map((file) => file.name),
+    };
+
+    // 添加到模拟数据
+    mockApiData.unshift(newTask);
+
+    // 刷新任务列表
+    fetchTasks();
+
+    // 关闭对话框
+    reaxysDialogVisible.value = false;
+
+    // 提示用户
+    ElMessage.success(`成功提交${reaxysForm.uploadedFiles.length}个PDF文件，任务正在处理中...`);
+  }, 800);
+};
+
 // 搜索任务
 const searchTasks = () => {
   currentPage.value = 1; // 重置为第一页
@@ -403,11 +840,6 @@ const resetQuery = () => {
   currentPage.value = 1;
   fetchTasks();
 };
-
-// 刷新任务列表 - 虽然保留方法定义，但不再有调用入口
-// const refreshTasks = () => {
-//   fetchTasks();
-// };
 
 // 处理分页大小变化
 const handlePageSizeChange = (newSize) => {
