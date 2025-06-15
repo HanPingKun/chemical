@@ -264,10 +264,18 @@ const reactionMockData = {
   result: [
     {
       reactant: ["CCO", "CCOC(=O)C=C"],
+      reactantOssList: [
+        "https://picsum.photos/200/200?random=2",
+        "https://picsum.photos/200/200?random=2",
+      ],
       reactantNameList: ["Ethanol", "Ethyl acrylate"],
       conditionList: ["25°C", "1 atm", "12h"],
       conditionContentList: ["Temperature", "Pressure", "Reaction Time"],
       product: ["CCOC(=O)CCCO", "H2O"],
+      productOssList: [
+        "https://picsum.photos/200/200?random=2",
+        "https://picsum.photos/200/200?random=2",
+      ],
       productNameList: ["Ethyl 3-hydroxypropionate", "Water"],
     },
     {
@@ -287,8 +295,16 @@ const reaxysMockData = {
     {
       reaxysId: "RX0012345",
       reactant: ["CCO", "C1=CC=C(C=C1)C(=O)Cl"],
+      reactantOssList: [
+        "https://picsum.photos/200/200?random=2",
+        "https://picsum.photos/200/200?random=2",
+      ],
       reactantNameList: ["Ethanol", "Benzoyl chloride"],
       product: ["CCOC(=O)C1=CC=CC=C1", "HCl"],
+      productOssList: [
+        "https://picsum.photos/200/200?random=2",
+        "https://picsum.photos/200/200?random=2",
+      ],
       productNameList: ["Ethyl benzoate", "Hydrogen chloride"],
       tableComponentList: [
         {
