@@ -77,15 +77,44 @@
         <!-- SMILES类型任务 -->
         <div v-if="taskData.taskCode === TASK_TYPE.SMILES">
           <el-card>
-            <p>SMILES: {{ taskDetailData.smiles }}</p>
-            <img :src="taskDetailData.ossUrl" alt="分子结构" class="img-preview" />
+            <template #header>
+              <div class="card-header">
+                <span>分子结构图至SMILES映射详情</span>
+              </div>
+            </template>
+            <el-descriptions column="1" border :label-width="120">
+              <el-descriptions-item label="分子结构图">
+                <img :src="taskDetailData.ossUrl" alt="分子结构" class="img-preview" />
+              </el-descriptions-item>
+              <el-descriptions-item label="SMILES表达式">
+                {{ taskDetailData.smiles }}
+              </el-descriptions-item>
+            </el-descriptions>
           </el-card>
         </div>
 
         <!-- 反应类型任务 -->
         <div v-if="taskData.taskCode === TASK_TYPE.REACTION">
+          <el-card>
+            <template #header>
+              <div class="card-header">
+                <span>化合反应示意图数据源</span>
+              </div>
+            </template>
+            <el-descriptions column="1" border :label-width="150">
+              <el-descriptions-item label="化合反应示意图">
+                <img :src="taskDetailData.ossUrl" alt="分子结构" class="img-preview" />
+              </el-descriptions-item>
+            </el-descriptions>
+          </el-card>
+          <br />
           <el-card v-for="(reaction, index) in taskDetailData.result" :key="index" class="mb-3">
-            <el-descriptions title="反应信息" column="2" border>
+            <template #header>
+              <div class="card-header">
+                <span>反应步骤 {{ index + 1 }} 结构化反应参数详情</span>
+              </div>
+            </template>
+            <el-descriptions column="2" border>
               <el-descriptions-item label="反应物">
                 <div v-for="(reactant, idx) in reaction.reactant" :key="idx">
                   {{ reaction.reactantNameList[idx] || reactant }}
@@ -103,56 +132,158 @@
               </el-descriptions-item>
             </el-descriptions>
           </el-card>
-          <img :src="taskDetailData.ossUrl" alt="反应方程式" class="img-preview" />
         </div>
 
-        <!-- Reaxys类型任务 -->
+        <!-- Reaxys类型任务 - 修改后的展示 -->
         <div v-if="taskData.taskCode === TASK_TYPE.REAXYS">
-          <el-card v-for="(reaction, index) in taskDetailData.result" :key="index" class="mb-3">
-            <el-descriptions title="Reaxys数据" column="2" border>
+          <el-card
+            v-for="(reaction, reactionIndex) in taskDetailData.result"
+            :key="reactionIndex"
+            class="mb-4"
+          >
+            <template #header>
+              <div class="card-header d-flex justify-between items-center">
+                <span>
+                  Reaxys反应数据 #{{ reactionIndex + 1 }} (Reaxys_ID: {{ reaction.reaxysId }})
+                </span>
+                <el-tag type="info">{{ reaction.reactantNameList.length }}个反应物</el-tag>
+              </div>
+            </template>
+
+            <!-- 基础反应信息 -->
+            <el-descriptions column="2" border class="mb-3">
               <el-descriptions-item label="Reaxys ID">{{ reaction.reaxysId }}</el-descriptions-item>
-              <el-descriptions-item label="反应物">
-                <div v-for="(reactant, idx) in reaction.reactant" :key="idx">
-                  {{ reaction.reactantNameList[idx] || reactant }}
-                </div>
-              </el-descriptions-item>
-              <el-descriptions-item label="产物">
-                <div v-for="(product, idx) in reaction.product" :key="idx">
-                  {{ reaction.productNameList[idx] || product }}
-                </div>
+              <el-descriptions-item label="反应来源">
+                <a :href="taskDetailData.ossUrl" target="_blank" class="text-primary">
+                  查看完整PDF
+                </a>
               </el-descriptions-item>
             </el-descriptions>
 
-            <el-card
-              v-for="(table, idx) in reaction.tableComponentList"
-              :key="idx"
-              title="反应条件"
-              class="mt-3"
-            >
-              <el-descriptions column="2" border>
-                <el-descriptions-item label="产率">{{ table.yieldRate }}</el-descriptions-item>
-                <el-descriptions-item label="溶剂">
-                  <div v-for="solvent in table.tableConditionList[0].solvent" :key="solvent">
-                    {{ solvent }}
+            <!-- 反应物展示区 -->
+            <el-card class="mb-3">
+              <template #header>
+                <div class="card-header">
+                  <span>反应物详情</span>
+                </div>
+              </template>
+              <el-descriptions column="2" border :label-width="150">
+                <el-descriptions-item label="SMILES表达式">
+                  <div v-for="(reactant, idx) in reaction.reactant" :key="idx">
+                    {{ reactant }}
                   </div>
                 </el-descriptions-item>
-                <el-descriptions-item label="催化剂">
-                  <div v-for="catalyst in table.tableConditionList[0].catalyst" :key="catalyst">
-                    {{ catalyst }}
+                <el-descriptions-item label="化合物名称">
+                  <div v-for="(name, idx) in reaction.reactantNameList" :key="idx">
+                    {{ name || "未命名" }}
                   </div>
                 </el-descriptions-item>
-                <el-descriptions-item label="温度">
-                  {{ table.tableConditionList[0].temperature }}
-                </el-descriptions-item>
-                <el-descriptions-item label="时间">
-                  {{ table.tableConditionList[0].time }}
+                <el-descriptions-item label="分子结构" :span="2">
+                  <div class="reactant-img-container">
+                    <img
+                      v-for="(imgUrl, idx) in reaction.reactantOssList"
+                      :key="idx"
+                      :src="imgUrl"
+                      alt="反应物结构"
+                      class="img-preview"
+                    />
+                  </div>
                 </el-descriptions-item>
               </el-descriptions>
             </el-card>
+
+            <!-- 产物展示区 -->
+            <el-card class="mb-3">
+              <template #header>
+                <div class="card-header">
+                  <span>产物详情</span>
+                </div>
+              </template>
+              <el-descriptions column="2" border :label-width="150">
+                <el-descriptions-item label="SMILES表达式">
+                  <div v-for="(product, idx) in reaction.product" :key="idx">
+                    {{ product }}
+                  </div>
+                </el-descriptions-item>
+                <el-descriptions-item label="化合物名称">
+                  <div v-for="(name, idx) in reaction.productNameList" :key="idx">
+                    {{ name || "未命名" }}
+                  </div>
+                </el-descriptions-item>
+                <el-descriptions-item label="分子结构" :span="2">
+                  <div class="product-img-container">
+                    <img
+                      v-for="(imgUrl, idx) in reaction.productOssList"
+                      :key="idx"
+                      :src="imgUrl"
+                      alt="产物结构"
+                      class="img-preview"
+                    />
+                  </div>
+                </el-descriptions-item>
+              </el-descriptions>
+            </el-card>
+
+            <!-- 反应条件展示区 -->
+            <el-card
+              v-for="(table, tableIdx) in reaction.tableComponentList"
+              :key="tableIdx"
+              class="mb-3"
+            >
+              <template #header>
+                <div class="card-header d-flex justify-between items-center">
+                  <span>反应条件组 #{{ tableIdx + 1 }}</span>
+                  <el-tag
+                    :type="table.yieldRate && table.yieldRate.includes('%') ? 'success' : 'info'"
+                  >
+                    产率: {{ table.yieldRate }}
+                  </el-tag>
+                </div>
+              </template>
+              <div
+                v-for="(condition, condIdx) in table.tableConditionList"
+                :key="condIdx"
+                style="margin-bottom: 16px"
+              >
+                <el-descriptions column="2" border :label-width="150">
+                  <el-descriptions-item label="溶剂">
+                    <div v-if="condition.solvent && condition.solvent.length">
+                      <div v-for="(solvent, idx) in condition.solvent" :key="idx">
+                        {{ solvent }}
+                      </div>
+                    </div>
+                    <div v-else>无</div>
+                  </el-descriptions-item>
+                  <el-descriptions-item label="催化剂">
+                    <div v-if="condition.catalyst && condition.catalyst.length">
+                      <div v-for="(catalyst, idx) in condition.catalyst" :key="idx">
+                        {{ catalyst }}
+                      </div>
+                    </div>
+                    <div v-else>无</div>
+                  </el-descriptions-item>
+                  <el-descriptions-item label="反应温度">
+                    {{
+                      condition.temperature && condition.temperature.length > 0
+                        ? condition.temperature[0]
+                        : "未指定"
+                    }}
+                  </el-descriptions-item>
+                  <el-descriptions-item label="反应时间">
+                    {{ condition.time && condition.time.length > 0 ? condition.time[0] : "未指定" }}
+                  </el-descriptions-item>
+                  <el-descriptions-item label="后处理">
+                    <div v-if="condition.after && condition.after.length">
+                      <div v-for="(after, idx) in condition.after" :key="idx">
+                        {{ after }}
+                      </div>
+                    </div>
+                    <div v-else>无</div>
+                  </el-descriptions-item>
+                </el-descriptions>
+              </div>
+            </el-card>
           </el-card>
-          <a :href="taskDetailData.ossUrl" target="_blank" class="el-button el-button--primary">
-            查看完整PDF
-          </a>
         </div>
       </div>
       <div v-else-if="taskData.status === 3" class="result-content">
@@ -325,13 +456,37 @@ const reaxysMockData = {
     {
       reaxysId: "RX0012346",
       reactant: ["C1=CC=C(C=C1)O", "CC(=O)Cl"],
+      reactantOssList: [
+        "https://picsum.photos/200/200?random=2",
+        "https://picsum.photos/200/200?random=2",
+      ],
       reactantNameList: ["Phenol", "Acetyl chloride"],
       product: ["C1=CC=C(C=C1)OC(=O)C", "HCl"],
+      productOssList: [
+        "https://picsum.photos/200/200?random=2",
+        "https://picsum.photos/200/200?random=2",
+      ],
       productNameList: ["Phenyl acetate", "Hydrogen chloride"],
       tableComponentList: [
         {
           yieldRate: "78%",
           tableConditionList: [
+            {
+              solvent: ["Chloroform"],
+              catalyst: ["Aluminium chloride (AlCl3)"],
+              reagent: [],
+              after: ["Cold water", "Sodium bicarbonate solution"],
+              temperature: ["Reflux"],
+              time: ["3 hours"],
+            },
+            {
+              solvent: ["Chloroform"],
+              catalyst: ["Aluminium chloride (AlCl3)"],
+              reagent: [],
+              after: ["Cold water", "Sodium bicarbonate solution"],
+              temperature: ["Reflux"],
+              time: ["3 hours"],
+            },
             {
               solvent: ["Chloroform"],
               catalyst: ["Aluminium chloride (AlCl3)"],
@@ -407,17 +562,56 @@ pre {
   color: #f56c6c;
 }
 
-.img-preview {
-  max-width: 100%;
-  height: auto;
-  margin-top: 15px;
-  border: 1px solid #ebeef5;
-  border-radius: 4px;
-}
-
 .card-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
+}
+
+.d-flex {
+  display: flex;
+}
+
+.justify-between {
+  justify-content: space-between;
+}
+
+.items-center {
+  align-items: center;
+}
+
+.reactant-img-container,
+.product-img-container {
+  display: flex;
+  flex-wrap: wrap; /* 超出自动换行 */
+  gap: 15px; /* 图片间距 */
+  justify-content: flex-start; /* 横向左对齐 */
+  margin-top: 10px;
+}
+
+.img-preview {
+  display: block;
+  max-width: 160px;
+  height: auto;
+  padding: 8px;
+  margin: 0;
+  cursor: pointer;
+  background-color: white;
+  border: 1px solid #ebeef5;
+  border-radius: 4px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  transition: all 0.3s ease;
+}
+
+.img-preview:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  transform: scale(1.02);
+}
+
+/* 响应式调整：小屏幕时减少图片宽度 */
+@media (max-width: 768px) {
+  .img-preview {
+    max-width: 120px;
+  }
 }
 </style>
