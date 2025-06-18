@@ -13,6 +13,22 @@ export const constantRoutes = [
         path: "/redirect/:path(.*)",
         component: () => import("@/views/redirect/index.vue"),
       },
+      {
+        // 详情界面路由",
+        path: "/detailPage/:id",
+        name: "DetailPage_single",
+        params: ['smiles', 'submissionTime', 'status', 'modelName'],
+        component: () => import("@/views/functionShow/LujingYuce/detailPage.vue"),
+        meta: { hidden: true },
+      },
+      {
+        // 详情界面路由",
+        path: "/detailPage/:id",
+        name: "DetailPage_multi",
+        params: ['smiles', 'submissionTime', 'status', 'modelName'],
+        component: () => import("@/views/functionShow/LujingYuce/detailPage_multi.vue"),
+        meta: { hidden: true },
+      },
     ],
   },
 
@@ -20,7 +36,19 @@ export const constantRoutes = [
     path: "/login",
     component: () => import("@/views/login/index.vue"),
     meta: { hidden: true },
+    // children:[
+    //   {
+    //     // path: "/login",
+    //     path:"/detailPage/:id",
+    //     name:"DetailPage",
+    //     component: () => import("@/views/functionShow/LujingYuce/detailPage.vue"),
+    //     meta: { hidden: true },
+    //   },
+    // ],
   },
+
+
+
 
   {
     path: "/",
