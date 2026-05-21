@@ -5,7 +5,7 @@ export const ResultEnum = {
   /**
    * 成功
    */
-  SUCCESS: "00000",
+  SUCCESS: 200,
   /**
    * 错误
    */
@@ -20,4 +20,4 @@ export const ResultEnum = {
    * 刷新令牌无效或过期
    */
   REFRESH_TOKEN_INVALID: "A0231",
-}; 
+};

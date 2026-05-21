@@ -5,7 +5,7 @@ export default defineMock([
     url: "notices/page",
     method: ["GET"],
     body: {
-      code: "00000",
+      code: 200,
       data: {
         list: [
           {
@@ -151,7 +151,7 @@ export default defineMock([
     method: ["POST"],
     body() {
       return {
-        code: "00000",
+        code: 200,
         data: null,
         msg: "新增成功",
       };
@@ -164,7 +164,7 @@ export default defineMock([
     method: ["GET"],
     body: ({ params }) => {
       return {
-        code: "00000",
+        code: 200,
         data: noticeMap[params.id],
         msg: "一切ok",
       };
@@ -177,7 +177,7 @@ export default defineMock([
     method: ["GET"],
     body: ({ params }) => {
       return {
-        code: "00000",
+        code: 200,
         data: noticeMap[params.id],
         msg: "一切ok",
       };
@@ -189,7 +189,7 @@ export default defineMock([
     method: ["PUT"],
     body({ body }) {
       return {
-        code: "00000",
+        code: 200,
         data: null,
         msg: "修改通知" + body.name + "成功",
       };
@@ -202,7 +202,7 @@ export default defineMock([
     method: ["DELETE"],
     body({ params }) {
       return {
-        code: "00000",
+        code: 200,
         data: null,
         msg: "删除通知" + params.id + "成功",
       };
@@ -214,7 +214,7 @@ export default defineMock([
     url: "notices/my-page",
     method: ["GET"],
     body: {
-      code: "00000",
+      code: 200,
       data: {
         list: [
           {

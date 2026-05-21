@@ -5,7 +5,7 @@ export default defineMock([
     url: "menus/routes",
     method: ["GET"],
     body: {
-      code: "00000",
+      code: 200,
       data: [
         {
           path: "/functionShow",
@@ -61,7 +61,7 @@ export default defineMock([
             },
             {
               path: "LeixingYuce",
-              component: "functionShow/LeixingYuce/index",
+              component: "",
               name: "LeixingYuce",
               meta: {
                 title: "类型预测",
@@ -71,10 +71,51 @@ export default defineMock([
                 alwaysShow: false,
                 params: null,
               },
+              children: [
+                {
+                  path: "YuceMoxing",
+                  component: "functionShow/LeixingYuce/YuceMoxing/index",
+                  name: "YuceMoxing",
+                  meta: {
+                    title: "单条预测",
+                    icon: "el-icon-User",
+                    hidden: false,
+                    keepAlive: true,
+                    alwaysShow: false,
+                    params: null,
+                  },
+                },
+                {
+                  path: "CPiliangYuce",
+                  component: "functionShow/LeixingYuce/PiliangYuce/index",
+                  name: "CPiliangYuce",
+                  meta: {
+                    title: "批量预测",
+                    icon: "el-icon-User",
+                    hidden: false,
+                    keepAlive: true,
+                    alwaysShow: false,
+                    params: null,
+                  },
+                },
+                // {
+                //   path: "XunlianMoxing",
+                //   component: "functionShow/LeixingYuce/XunlianMoxing/index",
+                //   name: "XunlianMoxing",
+                //   meta: {
+                //     title: "训练模型",
+                //     icon: "el-icon-User",
+                //     hidden: false,
+                //     keepAlive: true,
+                //     alwaysShow: false,
+                //     params: null,
+                //   },
+                // },
+              ],
             },
             {
               path: "ChanlvYuce",
-              component: "functionShow/ChanlvYuce/index",
+              component: "",
               name: "ChanlvYuce",
               meta: {
                 title: "产率预测",
@@ -84,6 +125,34 @@ export default defineMock([
                 alwaysShow: false,
                 params: null,
               },
+              children: [
+                {
+                  path: "DantiaoYuce",
+                  component: "functionShow/ChanlvYuce/DantiaoYuce/index",
+                  name: "DantiaoYuce",
+                  meta: {
+                    title: "单条预测",
+                    icon: "el-icon-User",
+                    hidden: false,
+                    keepAlive: true,
+                    alwaysShow: false,
+                    params: null,
+                  },
+                },
+                {
+                  path: "YPiliangYuce",
+                  component: "functionShow/ChanlvYuce/PiliangYuce/index",
+                  name: "YPiliangYuce",
+                  meta: {
+                    title: "批量预测",
+                    icon: "el-icon-User",
+                    hidden: false,
+                    keepAlive: true,
+                    alwaysShow: false,
+                    params: null,
+                  },
+                },
+              ],
             },
             {
               path: "LujingYuce",
@@ -615,7 +684,7 @@ export default defineMock([
     url: "menus",
     method: ["GET"],
     body: {
-      code: "00000",
+      code: 200,
       data: [
         {
           id: 1,
@@ -1708,7 +1777,7 @@ export default defineMock([
     url: "menus/options",
     method: ["GET"],
     body: {
-      code: "00000",
+      code: 200,
       data: [
         {
           value: "1",
@@ -2054,7 +2123,7 @@ export default defineMock([
     method: ["POST"],
     body({ body }) {
       return {
-        code: "00000",
+        code: 200,
         data: null,
         msg: "新增菜单" + body.name + "成功",
       };
@@ -2067,7 +2136,7 @@ export default defineMock([
     method: ["GET"],
     body: ({ params }) => {
       return {
-        code: "00000",
+        code: 200,
         data: menuMap[params.id],
         msg: "一切ok",
       };
@@ -2080,7 +2149,7 @@ export default defineMock([
     method: ["PUT"],
     body({ body }) {
       return {
-        code: "00000",
+        code: 200,
         data: null,
         msg: "修改菜单" + body.name + "成功",
       };
@@ -2093,7 +2162,7 @@ export default defineMock([
     method: ["DELETE"],
     body({ params }) {
       return {
-        code: "00000",
+        code: 200,
         data: null,
         msg: "删除菜单" + params.id + "成功",
       };

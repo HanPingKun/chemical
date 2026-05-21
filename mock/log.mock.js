@@ -5,7 +5,7 @@ export default defineMock([
     url: "logs/page",
     method: ["GET"],
     body: {
-      code: "00000",
+      code: 200,
       data: {
         list: [
           {
@@ -168,7 +168,7 @@ export default defineMock([
     url: "logs/visit-trend",
     method: ["GET"],
     body: {
-      code: "00000",
+      code: 200,
       data: {
         dates: [
           "2024-06-30",
@@ -192,7 +192,7 @@ export default defineMock([
     url: "logs/visit-stats",
     method: ["GET"],
     body: {
-      code: "00000",
+      code: 200,
       data: {
         todayPvCount: 1629,
         totalPvCount: 286086,

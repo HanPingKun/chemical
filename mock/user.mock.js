@@ -5,7 +5,7 @@ export default defineMock([
     url: "users/me",
     method: ["GET"],
     body: {
-      code: "00000",
+      code: 200,
       data: {
         userId: 2,
         username: "admin",
@@ -69,7 +69,7 @@ export default defineMock([
     url: "users/page",
     method: ["GET"],
     body: {
-      code: "00000",
+      code: 200,
       data: {
         list: [
           {
@@ -109,7 +109,7 @@ export default defineMock([
     method: ["POST"],
     body({ body }) {
       return {
-        code: "00000",
+        code: 200,
         data: null,
         msg: "新增用户" + body.nickname + "成功",
       };
@@ -122,7 +122,7 @@ export default defineMock([
     method: ["GET"],
     body: ({ params }) => {
       return {
-        code: "00000",
+        code: 200,
         data: userMap[params.userId],
         msg: "一切ok",
       };
@@ -134,7 +134,7 @@ export default defineMock([
     method: ["PUT"],
     body({ body }) {
       return {
-        code: "00000",
+        code: 200,
         data: null,
         msg: "修改用户" + body.nickname + "成功",
       };
@@ -147,7 +147,7 @@ export default defineMock([
     method: ["DELETE"],
     body({ params }) {
       return {
-        code: "00000",
+        code: 200,
         data: null,
         msg: "删除用户" + params.id + "成功",
       };
@@ -160,7 +160,7 @@ export default defineMock([
     method: ["PUT"],
     body({ query }) {
       return {
-        code: "00000",
+        code: 200,
         data: null,
         msg: "重置密码成功，新密码为：" + query.password,
       };
@@ -181,7 +181,7 @@ export default defineMock([
     url: "users/profile",
     method: ["GET"],
     body: {
-      code: "00000",
+      code: 200,
       data: {
         id: 2,
         username: "admin",
@@ -202,7 +202,7 @@ export default defineMock([
     method: ["PUT"],
     body() {
       return {
-        code: "00000",
+        code: 200,
         data: null,
         msg: "修改个人信息成功",
       };
@@ -214,7 +214,7 @@ export default defineMock([
     method: ["PUT"],
     body() {
       return {
-        code: "00000",
+        code: 200,
         data: null,
         msg: "修改密码成功",
       };
