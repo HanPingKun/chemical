@@ -8,6 +8,53 @@
               <span>多模态化学信息抽取</span>
             </span>
           </template>
+
+          <div class="chat-container">
+            <div ref="chatHistory" class="chat-history">
+              <div v-for="(msg, index) in chatList" :key="index" :class="['chat-message', msg.role]">
+                <div class="avatar">
+                  {{ msg.role === "ai" ? "AI" : "Admin" }}
+                </div>
+                <div class="message-content">
+                  <div v-if="msg.images && msg.images.length > 0" class="msg-images">
+                    <el-image v-for="(img, i) in msg.images" :key="i" :src="img.url" :preview-src-list="[img.url]"
+                      fit="cover" class="chat-img" />
+                  </div>
+                  <div v-if="msg.text" class="msg-text">{{ msg.text }}</div>
+                </div>
+              </div>
+
+              <div v-if="isThinking" class="chat-message ai">
+                <div class="avatar">AI</div>
+                <div class="message-content thinking-content">
+                  <span class="dot-typing">正在处理...</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="chat-input-area">
+              <div v-if="inputImages.length > 0" class="preview-area">
+                <div v-for="(img, idx) in inputImages" :key="idx" class="preview-item">
+                  <img :src="img.url" alt="preview" />
+                  <div class="remove-icon" @click="removeImage(idx)">×</div>
+                </div>
+              </div>
+
+              <div class="input-wrapper">
+                <input ref="fileInput" type="file" style="display: none" multiple accept="image/*"
+                  @change="handleFileSelect" />
+                <el-button circle title="上传图片" @click="$refs.fileInput.click()">图</el-button>
+
+                <el-input v-model="inputText" type="textarea" :rows="2" placeholder="请输入内容，或直接使用 Ctrl+V 粘贴图片..."
+                  resize="none" class="chat-input" @paste="handlePaste" @keydown.enter.prevent="sendMessage" />
+
+                <el-button type="primary" :disabled="isThinking || (!inputText.trim() && inputImages.length === 0)"
+                  @click="sendMessage">
+                  发送
+                </el-button>
+              </div>
+            </div>
+          </div>
         </el-tab-pane>
 
         <el-tab-pane name="reaxys">
@@ -17,21 +64,12 @@
             </span>
           </template>
 
-          <div
-            v-loading="pdfLoading"
-            element-loading-text="正在端到端深度解析文献 PDF，请稍候..."
-            class="upload-card"
-          >
-            <el-upload
-              class="pdf-uploader"
-              drag
-              action=""
-              :auto-upload="false"
-              :show-file-list="false"
-              :on-change="handleFileChange"
-              accept=".pdf"
-            >
-              <el-icon class="el-icon--upload"><upload-filled /></el-icon>
+          <div v-loading="pdfLoading" element-loading-text="正在端到端深度解析文献 PDF，请稍候..." class="upload-card">
+            <el-upload class="pdf-uploader" drag action="" :auto-upload="false" :show-file-list="false"
+              :on-change="handleFileChange" accept=".pdf">
+              <div class="el-icon--upload" style="font-size: 48px; color: #909399; margin-bottom: 10px">
+                ↑
+              </div>
               <div class="el-upload__text">
                 将 Reaxys 文献 PDF 拖到此处，或
                 <em>点击上传</em>
@@ -65,21 +103,11 @@
                 </div>
 
                 <div class="table-title">底物与产物信息</div>
-                <!-- 新增：底物与产物 SMILES 表格 -->
-                <el-table
-                  :data="item.reaction?.steps || []"
-                  border
-                  stripe
-                  style="width: 100%; margin-bottom: 20px"
-                >
+                <el-table :data="item.reaction?.steps || []" border stripe style="width: 100%; margin-bottom: 20px">
                   <el-table-column label="步骤" type="index" width="60" align="center" />
                   <el-table-column label="底物 SMILES (Reactants)">
                     <template #default="scope">
-                      <div
-                        v-for="(r, i) in scope.row.reactants"
-                        :key="'r-' + i"
-                        class="smiles-text"
-                      >
+                      <div v-for="(r, i) in scope.row.reactants" :key="'r-' + i" class="smiles-text">
                         {{ r }}
                       </div>
                     </template>
@@ -94,13 +122,7 @@
                 </el-table>
 
                 <div class="table-title">提取的反应条件与产率明细</div>
-                <el-table
-                  :data="item.table_items"
-                  border
-                  stripe
-                  style="width: 100%"
-                  class="result-table"
-                >
+                <el-table :data="item.table_items" border stripe style="width: 100%" class="result-table">
                   <el-table-column type="expand">
                     <template #default="props">
                       <div class="raw-content-box">
@@ -112,25 +134,15 @@
                   <el-table-column label="序号" type="index" width="60" align="center" />
                   <el-table-column label="催化剂 (Catalyst)" min-width="120">
                     <template #default="scope">
-                      <el-tag
-                        v-for="c in scope.row.conditions[0]?.catalyst"
-                        :key="c"
-                        size="small"
-                        class="m-1"
-                      >
+                      <el-tag v-for="c in scope.row.conditions[0]?.catalyst" :key="c" size="small" class="m-1">
                         {{ c }}
                       </el-tag>
                     </template>
                   </el-table-column>
                   <el-table-column label="溶剂 (Solvent)" min-width="120">
                     <template #default="scope">
-                      <el-tag
-                        v-for="s in scope.row.conditions[0]?.solvent"
-                        :key="s"
-                        type="success"
-                        size="small"
-                        class="m-1"
-                      >
+                      <el-tag v-for="s in scope.row.conditions[0]?.solvent" :key="s" type="success" size="small"
+                        class="m-1">
                         {{ s }}
                       </el-tag>
                     </template>
@@ -157,12 +169,7 @@
                       </span>
                     </template>
                   </el-table-column>
-                  <el-table-column
-                    label="产率 (Yield)"
-                    width="100"
-                    align="center"
-                    prop="yield_rate"
-                  >
+                  <el-table-column label="产率 (Yield)" width="100" align="center" prop="yield_rate">
                     <template #default="scope">
                       <span class="yield-highlight">{{ scope.row.yield_rate || "-" }}</span>
                     </template>
@@ -179,11 +186,8 @@
 
 <script>
 import axios from "axios";
-// 如果您使用的是 Element Plus，请取消下方图标组件的注释 (或确保您的项目已全局引入图标)
-// import { UploadFilled } from '@element-plus/icons-vue'
 
 export default {
-  // components: { UploadFilled },
   data() {
     return {
       activeTab: "smiles", // 当前激活的Tab名称
@@ -194,13 +198,25 @@ export default {
       },
       predictedYield: null,
 
-      // 新增 Reaxys 业务相关状态
-      pdfLoading: false, // 上传转圈等待状态
-      originalFilename: "", // 原始上传文件名
-      reaxysResults: [], // 后端返回的解析数组
+      // === Reaxys 业务原有状态 ===
+      pdfLoading: false,
+      originalFilename: "",
+      reaxysResults: [],
+
+      // === 新增：多模态对话 Agent 状态 ===
+      chatList: [
+        {
+          role: "ai",
+          text: "你好，欢迎使用多模态化学信息提取系统。请发送相关图片或输入你需要提取的内容。",
+        },
+      ],
+      inputText: "",
+      inputImages: [], // 存储待发送的图片 { file: File, url: String }
+      isThinking: false, // 控制思考状态显示
     };
   },
   methods: {
+    // ==================== 原有：Reaxys PDF 解析 ====================
     async handleFileChange(uploadFile) {
       if (!uploadFile) return;
       const formData = new FormData();
@@ -225,9 +241,114 @@ export default {
         }
       } catch (error) {
         console.error("Failed to analyze Reaxys PDF:", error);
-        this.$message.error("网络或服务器异常，解吸PDF失败");
+        this.$message.error("网络或服务器异常，解析PDF失败");
       } finally {
-        this.pdfLoading = false; // 关闭转圈等待
+        this.pdfLoading = false;
+      }
+    },
+
+    // ==================== 新增：多模态 Agent 对话交互 ====================
+    // 监听输入框 Ctrl+V 粘贴事件
+    handlePaste(event) {
+      const items = (event.clipboardData || window.clipboardData).items;
+      for (let item of items) {
+        if (item.type.indexOf("image") !== -1) {
+          const file = item.getAsFile();
+          if (file) {
+            this.inputImages.push({
+              file: file,
+              url: URL.createObjectURL(file),
+            });
+          }
+        }
+      }
+    },
+
+    // 手动点击按钮选择本地图片
+    handleFileSelect(event) {
+      const files = event.target.files;
+      for (let file of files) {
+        this.inputImages.push({
+          file: file,
+          url: URL.createObjectURL(file),
+        });
+      }
+      // 清空 value 允许重复选同一个文件
+      event.target.value = null;
+    },
+
+    // 移除待发送的图片
+    removeImage(index) {
+      URL.revokeObjectURL(this.inputImages[index].url);
+      this.inputImages.splice(index, 1);
+    },
+
+    // 自动滚动到聊天底部
+    scrollToBottom() {
+      this.$nextTick(() => {
+        const history = this.$refs.chatHistory;
+        if (history) {
+          history.scrollTop = history.scrollHeight;
+        }
+      });
+    },
+
+    // 发送消息到后端 Multi-Agents 接口
+    async sendMessage() {
+      if (!this.inputText.trim() && this.inputImages.length === 0) return;
+
+      // 1. 将用户的输入组装并放入聊天历史列表
+      const userMsg = {
+        role: "user",
+        text: this.inputText.trim(),
+        images: [...this.inputImages],
+      };
+      this.chatList.push(userMsg);
+      this.scrollToBottom();
+
+      // 2. 构造发送给后端的 FormData
+      const formData = new FormData();
+      if (this.inputText.trim()) {
+        formData.append("text", this.inputText.trim());
+      }
+      this.inputImages.forEach((imgObj) => {
+        // 根据你后端的具体接收字段名，这里默认以 "images" 传入
+        formData.append("images", imgObj.file);
+      });
+
+      // 3. 状态重置：清空输入区，开启 AI 思考动画
+      this.inputText = "";
+      this.inputImages = [];
+      this.isThinking = true;
+      this.scrollToBottom();
+
+      try {
+        const response = await axios.post("http://localhost:9001/ie/mulit-agents", formData, {
+          headers: { "Content-Type": "multipart/form-data" },
+        });
+
+        // 假设后端成功返回的结构为 { code: 200, data: "提取的文本信息..." }
+        if (response.data && response.data.code === 200) {
+          this.chatList.push({
+            role: "ai",
+            text: response.data.data || response.data.msg || "信息已处理完毕。",
+            images: [],
+          });
+        } else {
+          this.chatList.push({
+            role: "ai",
+            text: "处理失败：" + (response.data.msg || "后端返回异常状态"),
+          });
+        }
+      } catch (error) {
+        console.error("Agents interaction failed:", error);
+        this.chatList.push({
+          role: "ai",
+          text: "网络或服务异常，无法连接到 Agents 进行处理。",
+        });
+      } finally {
+        this.isThinking = false;
+        this.scrollToBottom();
       }
     },
   },
@@ -235,6 +356,7 @@ export default {
 </script>
 
 <style scoped>
+/* ==================== 原有样式 ==================== */
 .header {
   padding: 0px 0;
   color: white;
@@ -250,22 +372,14 @@ export default {
   border-radius: 8px;
 }
 
-/* PDF 上传拖拽区域美化 */
 .pdf-uploader {
   margin-bottom: 25px;
-}
-
-.el-icon--upload {
-  margin-bottom: 10px;
-  font-size: 48px;
-  color: #909399;
 }
 
 .m-1 {
   margin: 2px;
 }
 
-/* 解析结果样式集 */
 .reaxys-result-container {
   padding-top: 20px;
   margin-top: 30px;
@@ -381,7 +495,6 @@ export default {
   white-space: pre-line;
 }
 
-/* 原有样式保留并兼容 */
 .button-row {
   margin-bottom: 20px;
 }
@@ -428,5 +541,153 @@ export default {
 .result-title {
   font-size: 32px !important;
   color: rgb(1, 70, 138) !important;
+}
+
+/* ==================== 新增：Agent 对话界面样式 ==================== */
+.chat-container {
+  display: flex;
+  flex-direction: column;
+  height: 600px;
+  border: 1px solid #dcdfe6;
+  border-radius: 8px;
+  background-color: #f9fbfc;
+  margin-top: 20px;
+}
+
+.chat-history {
+  flex: 1;
+  padding: 20px;
+  overflow-y: auto;
+}
+
+.chat-message {
+  display: flex;
+  margin-bottom: 20px;
+  align-items: flex-start;
+}
+
+/* AI 气泡靠左 */
+.chat-message.ai {
+  flex-direction: row;
+}
+
+.chat-message.ai .message-content {
+  background-color: #ffffff;
+  border: 1px solid #e4e7ed;
+  margin-left: 10px;
+  border-radius: 4px 12px 12px 12px;
+}
+
+/* 用户气泡靠右 */
+.chat-message.user {
+  flex-direction: row-reverse;
+}
+
+.chat-message.user .message-content {
+  background-color: #c1e7e3;
+  color: #333;
+  margin-right: 10px;
+  border-radius: 12px 4px 12px 12px;
+}
+
+.avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background-color: rgb(1, 70, 138);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: bold;
+  flex-shrink: 0;
+}
+
+.chat-message.user .avatar {
+  background-color: #67c23a;
+}
+
+.message-content {
+  padding: 12px 16px;
+  max-width: 70%;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  word-break: break-all;
+  white-space: pre-wrap;
+  line-height: 1.5;
+}
+
+.msg-images {
+  margin-bottom: 8px;
+}
+
+.chat-img {
+  width: 150px;
+  border-radius: 4px;
+  margin-right: 8px;
+  margin-bottom: 8px;
+  border: 1px solid #ebeef5;
+}
+
+.thinking-content {
+  color: #909399;
+  font-style: italic;
+}
+
+/* 底部输入区 */
+.chat-input-area {
+  border-top: 1px solid #dcdfe6;
+  background-color: #ffffff;
+  padding: 15px;
+  border-radius: 0 0 8px 8px;
+}
+
+.preview-area {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.preview-item {
+  position: relative;
+  width: 60px;
+  height: 60px;
+  border: 1px solid #dcdfe6;
+  border-radius: 4px;
+}
+
+.preview-item img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 4px;
+}
+
+.remove-icon {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  background: #f56c6c;
+  color: white;
+  border-radius: 50%;
+  width: 16px;
+  height: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 12px;
+  line-height: 1;
+}
+
+.input-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.chat-input {
+  flex: 1;
 }
 </style>
