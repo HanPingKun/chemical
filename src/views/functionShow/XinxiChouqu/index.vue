@@ -346,7 +346,7 @@
                 </div>
 
                 <div v-if="item.detail?.r_group && item.detail.r_group.length > 0">
-                  <div class="table-title">取代基 R 基团</div>
+                  <div class="table-title">R基团信息</div>
                   <el-table :data="item.detail.r_group" border stripe style="width: 100%; margin-bottom: 20px">
                     <el-table-column label="标识符 (Identifier)" prop="identifier" width="180" />
                     <el-table-column label="目标组合 (Target)">
@@ -361,7 +361,7 @@
 
                 <div v-if="item.detail?.table_content && item.detail.table_content.length > 0">
                   <div v-for="(tbLine, tbIdx) in item.detail.table_content" :key="'tb-' + tbIdx">
-                    <div class="table-title">拓展表格: {{ tbLine.table_name }}</div>
+                    <div class="table-title">表格信息: {{ tbLine.table_name }}</div>
                     <el-table v-if="tbLine.content && tbLine.content.length > 0" :data="tbLine.content" border stripe
                       style="width: 100%; margin-bottom: 20px">
                       <el-table-column v-for="colKey in Object.keys(tbLine.content[0])" :key="colKey" :label="colKey"
