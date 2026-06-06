@@ -2,7 +2,39 @@
   <div class="app-container">
     <div class="search-bar">
       <el-tabs v-model="activeTab" type="border-card" class="demo-tabs">
+        <el-tab-pane name="text">
+          <template #label>
+            <span class="custom-tabs-label">
+              <span>文本信息抽取</span>
+            </span>
+          </template>
+        </el-tab-pane>
+
         <el-tab-pane name="smiles">
+          <template #label>
+            <span class="custom-tabs-label">
+              <span>分子结构识别</span>
+            </span>
+          </template>
+        </el-tab-pane>
+
+        <el-tab-pane name="reaction">
+          <template #label>
+            <span class="custom-tabs-label">
+              <span>方程式解析</span>
+            </span>
+          </template>
+        </el-tab-pane>
+
+        <el-tab-pane name="reaction">
+          <template #label>
+            <span class="custom-tabs-label">
+              <span>文献示意图解析</span>
+            </span>
+          </template>
+        </el-tab-pane>
+
+        <el-tab-pane name="mulit">
           <template #label>
             <span class="custom-tabs-label">
               <span>多模态化学信息抽取</span>
@@ -190,7 +222,7 @@ import axios from "axios";
 export default {
   data() {
     return {
-      activeTab: "smiles", // 当前激活的Tab名称
+      activeTab: "mulit", // 当前激活的Tab名称
       form: {
         smiles: "",
         smiles1: "",
