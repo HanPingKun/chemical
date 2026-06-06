@@ -159,6 +159,75 @@
               <span>方程式解析</span>
             </span>
           </template>
+
+          <div v-loading="reactionLoading" element-loading-text="正在解析方程式结构，请稍候..." class="upload-card">
+            <el-upload class="pdf-uploader" drag action="" :auto-upload="false" multiple accept="image/*"
+              :file-list="reactionFileList" :on-change="handleReactionChange" :on-remove="handleReactionRemove">
+              <div class="el-icon--upload" style="font-size: 48px; color: #909399; margin-bottom: 10px">
+                +
+              </div>
+              <div class="el-upload__text">
+                将反应方程式图片拖到此处，或
+                <em>点击上传</em>
+                (支持多张)
+              </div>
+            </el-upload>
+
+            <div class="button-row" style="text-align: center; margin-top: 20px">
+              <el-button type="primary" :disabled="reactionFileList.length === 0 || reactionLoading"
+                @click="handleReactionExtract">
+                开始抽取
+              </el-button>
+            </div>
+
+            <div v-if="reactionResults.length > 0" class="reaxys-result-container">
+              <div class="table-title">解析结果明细</div>
+
+              <div v-for="(item, idx) in reactionResults" :key="idx" class="rx-block">
+                <div class="rx-header">
+                  <span class="rx-id-tag">反应图 #{{ idx + 1 }}</span>
+                </div>
+
+                <div class="reaction-img-box">
+                  <el-image :src="item.image_url" fit="contain" class="rx-img" :preview-src-list="[item.image_url]">
+                    <template #placeholder>
+                      <div class="image-slot">加载中...</div>
+                    </template>
+                  </el-image>
+                </div>
+
+                <div class="table-title">解析步骤详情</div>
+                <el-table :data="item.reactions || []" border stripe style="width: 100%">
+                  <el-table-column label="步骤" prop="step" width="80" align="center" />
+
+                  <el-table-column label="底物 (Reactants)">
+                    <template #default="scope">
+                      <div v-for="(r, i) in scope.row.detail?.reactants_smiles" :key="'rr-' + i" class="smiles-text">
+                        {{ r }}
+                      </div>
+                    </template>
+                  </el-table-column>
+
+                  <el-table-column label="产物 (Products)">
+                    <template #default="scope">
+                      <div v-for="(p, i) in scope.row.detail?.products_smiles" :key="'pp-' + i" class="smiles-text">
+                        {{ p }}
+                      </div>
+                    </template>
+                  </el-table-column>
+
+                  <el-table-column label="反应条件 (Conditions)" min-width="120">
+                    <template #default="scope">
+                      <el-tag v-for="(c, i) in scope.row.detail?.conditions_text" :key="'cc-' + i" size="small"
+                        class="m-1">
+                        {{ c }}
+                      </el-tag>
+                    </template>
+                  </el-table-column>
+                </el-table>
+              </div>
+            </div>
+          </div>
         </el-tab-pane>
 
         <el-tab-pane name="diagram">
@@ -373,6 +442,10 @@ export default {
       smilesFileList: [],
       smilesResults: [],
 
+      reactionLoading: false,
+      reactionFileList: [],
+      reactionResults: [],
+
       pdfLoading: false,
       originalFilename: "",
       reaxysResults: [],
@@ -458,6 +531,48 @@ export default {
         this.$message.error("网络或服务器异常，无法完成识别");
       } finally {
         this.smilesLoading = false;
+      }
+    },
+
+    handleReactionChange(uploadFile, uploadFiles) {
+      this.reactionFileList = uploadFiles;
+    },
+
+    handleReactionRemove(uploadFile, uploadFiles) {
+      this.reactionFileList = uploadFiles;
+    },
+
+    async handleReactionExtract() {
+      if (this.reactionFileList.length === 0) return;
+
+      this.reactionLoading = true;
+      this.reactionResults = [];
+
+      const formData = new FormData();
+      this.reactionFileList.forEach((file) => {
+        if (file.raw) {
+          formData.append("images", file.raw);
+        }
+      });
+
+      try {
+        const response = await axios.post("http://localhost:9001/ie/reaction", formData, {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        });
+
+        if (response.data && response.data.code === 200) {
+          this.reactionResults = response.data.data || [];
+          this.$message.success("方程式解析成功！");
+        } else {
+          this.$message.error(response.data.msg || "解析失败，请稍后重试");
+        }
+      } catch (error) {
+        console.error("Reaction parsing error:", error);
+        this.$message.error("网络或服务器异常，无法完成方程式解析");
+      } finally {
+        this.reactionLoading = false;
       }
     },
 
