@@ -236,6 +236,148 @@
               <span>文献示意图解析</span>
             </span>
           </template>
+
+          <div v-loading="diagramLoading" element-loading-text="正在解析文献示意图，请稍候..." class="upload-card">
+            <el-upload class="pdf-uploader" drag action="" :auto-upload="false" multiple accept="image/*"
+              :file-list="diagramFileList" :on-change="handleDiagramChange" :on-remove="handleDiagramRemove">
+              <div class="el-icon--upload" style="font-size: 48px; color: #909399; margin-bottom: 10px">
+                +
+              </div>
+              <div class="el-upload__text">
+                将文献示意图拖到此处，或
+                <em>点击上传</em>
+                (支持多张)
+              </div>
+            </el-upload>
+
+            <div class="button-row" style="text-align: center; margin-top: 20px">
+              <el-button type="primary" :disabled="diagramFileList.length === 0 || diagramLoading"
+                @click="handleDiagramExtract">
+                开始抽取
+              </el-button>
+            </div>
+
+            <div v-if="diagramResults.length > 0" class="reaxys-result-container">
+              <div class="table-title">解析结果明细</div>
+
+              <div v-for="(item, idx) in diagramResults" :key="idx" class="rx-block">
+                <div class="rx-header">
+                  <span class="rx-id-tag">文献示意图 #{{ idx + 1 }}</span>
+                </div>
+
+                <div class="reaction-img-box">
+                  <el-image :src="item.image_url" fit="contain" class="rx-img" :preview-src-list="[item.image_url]">
+                    <template #placeholder>
+                      <div class="image-slot">加载中...</div>
+                    </template>
+                  </el-image>
+                </div>
+
+                <div v-if="item.detail?.reactions && item.detail.reactions.length > 0">
+                  <div class="table-title">反应步骤解析</div>
+                  <el-table :data="item.detail.reactions" border stripe style="width: 100%; margin-bottom: 20px">
+                    <el-table-column type="expand">
+                      <template #default="props">
+                        <div class="raw-content-box">
+                          <strong>反应条件原始文本:</strong>
+                          <p v-for="(txt, i) in props.row.conditions?.raw_content" :key="'rc-' + i" class="raw-text">
+                            {{ txt }}
+                          </p>
+                        </div>
+                      </template>
+                    </el-table-column>
+                    <el-table-column label="步骤" prop="step" width="60" align="center" />
+
+                    <el-table-column label="底物 (Reactants)">
+                      <template #default="scope">
+                        <div v-for="(r, i) in scope.row.reactants" :key="'r-' + i">
+                          <div class="smiles-text" style="margin-bottom: 5px">{{ r.smiles }}</div>
+                          <div v-if="r.identifier && r.identifier.length > 0">
+                            <el-tag v-for="(tag, tidx) in r.identifier" :key="'rtag-' + tidx" size="small" type="info"
+                              class="m-1">
+                              {{ tag }}
+                            </el-tag>
+                          </div>
+                        </div>
+                      </template>
+                    </el-table-column>
+
+                    <el-table-column label="产物 (Products)">
+                      <template #default="scope">
+                        <div v-for="(p, i) in scope.row.products" :key="'p-' + i">
+                          <div class="smiles-text" style="margin-bottom: 5px">{{ p.smiles }}</div>
+                          <div v-if="p.identifier && p.identifier.length > 0">
+                            <el-tag v-for="(tag, tidx) in p.identifier" :key="'ptag-' + tidx" size="small" type="info"
+                              class="m-1">
+                              {{ tag }}
+                            </el-tag>
+                          </div>
+                        </div>
+                      </template>
+                    </el-table-column>
+
+                    <el-table-column label="反应条件 (Conditions)" min-width="150">
+                      <template #default="scope">
+                        <div v-if="scope.row.conditions?.solvent?.length">
+                          <strong>溶剂:</strong>
+                          <span>{{ scope.row.conditions.solvent.join(", ") }}</span>
+                        </div>
+                        <div v-if="scope.row.conditions?.reagent?.length">
+                          <strong>试剂:</strong>
+                          <span>{{ scope.row.conditions.reagent.join(", ") }}</span>
+                        </div>
+                        <div v-if="scope.row.conditions?.temperature?.length">
+                          <strong>温度:</strong>
+                          <span>{{ scope.row.conditions.temperature.join(", ") }}</span>
+                        </div>
+                        <div v-if="scope.row.conditions?.time?.length">
+                          <strong>时间:</strong>
+                          <span>{{ scope.row.conditions.time.join(", ") }}</span>
+                        </div>
+                        <div v-if="scope.row.conditions?.yield?.length">
+                          <strong>产率:</strong>
+                          <span class="yield-highlight">
+                            {{ scope.row.conditions.yield.join(", ") }}
+                          </span>
+                        </div>
+                      </template>
+                    </el-table-column>
+                  </el-table>
+                </div>
+
+                <div v-if="item.detail?.r_group && item.detail.r_group.length > 0">
+                  <div class="table-title">取代基 R 基团</div>
+                  <el-table :data="item.detail.r_group" border stripe style="width: 100%; margin-bottom: 20px">
+                    <el-table-column label="标识符 (Identifier)" prop="identifier" width="180" />
+                    <el-table-column label="目标组合 (Target)">
+                      <template #default="scope">
+                        <div v-for="(t, i) in scope.row.target" :key="'tgt-' + i" class="smiles-text">
+                          {{ t }}
+                        </div>
+                      </template>
+                    </el-table-column>
+                  </el-table>
+                </div>
+
+                <div v-if="item.detail?.table_content && item.detail.table_content.length > 0">
+                  <div v-for="(tbLine, tbIdx) in item.detail.table_content" :key="'tb-' + tbIdx">
+                    <div class="table-title">拓展表格: {{ tbLine.table_name }}</div>
+                    <el-table v-if="tbLine.content && tbLine.content.length > 0" :data="tbLine.content" border stripe
+                      style="width: 100%; margin-bottom: 20px">
+                      <el-table-column v-for="colKey in Object.keys(tbLine.content[0])" :key="colKey" :label="colKey"
+                        :prop="colKey">
+                        <template #default="scope">
+                          <span :class="{ 'yield-highlight': colKey.toLowerCase().includes('yield') }">
+                            {{ scope.row[colKey] }}
+                          </span>
+                        </template>
+                      </el-table-column>
+                    </el-table>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
         </el-tab-pane>
 
         <el-tab-pane name="mulit">
@@ -446,6 +588,10 @@ export default {
       reactionFileList: [],
       reactionResults: [],
 
+      diagramLoading: false,
+      diagramFileList: [],
+      diagramResults: [],
+
       pdfLoading: false,
       originalFilename: "",
       reaxysResults: [],
@@ -573,6 +719,48 @@ export default {
         this.$message.error("网络或服务器异常，无法完成方程式解析");
       } finally {
         this.reactionLoading = false;
+      }
+    },
+
+    handleDiagramChange(uploadFile, uploadFiles) {
+      this.diagramFileList = uploadFiles;
+    },
+
+    handleDiagramRemove(uploadFile, uploadFiles) {
+      this.diagramFileList = uploadFiles;
+    },
+
+    async handleDiagramExtract() {
+      if (this.diagramFileList.length === 0) return;
+
+      this.diagramLoading = true;
+      this.diagramResults = [];
+
+      const formData = new FormData();
+      this.diagramFileList.forEach((file) => {
+        if (file.raw) {
+          formData.append("images", file.raw);
+        }
+      });
+
+      try {
+        const response = await axios.post("http://localhost:9001/ie/schematic", formData, {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        });
+
+        if (response.data && response.data.code === 200) {
+          this.diagramResults = response.data.data || [];
+          this.$message.success("示意图解析成功！");
+        } else {
+          this.$message.error(response.data.msg || "解析失败，请稍后重试");
+        }
+      } catch (error) {
+        console.error("Diagram parsing error:", error);
+        this.$message.error("网络或服务器异常，无法完成示意图解析");
+      } finally {
+        this.diagramLoading = false;
       }
     },
 
