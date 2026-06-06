@@ -102,6 +102,55 @@
               <span>分子结构识别</span>
             </span>
           </template>
+
+          <div v-loading="smilesLoading" element-loading-text="正在识别分子结构，请稍候..." class="upload-card">
+            <el-upload class="pdf-uploader" drag action="" :auto-upload="false" multiple accept="image/*"
+              :file-list="smilesFileList" :on-change="handleSmilesChange" :on-remove="handleSmilesRemove">
+              <div class="el-icon--upload" style="font-size: 48px; color: #909399; margin-bottom: 10px">
+                +
+              </div>
+              <div class="el-upload__text">
+                将分子结构图片拖到此处，或
+                <em>点击上传</em>
+                (支持多张)
+              </div>
+            </el-upload>
+
+            <div class="button-row" style="text-align: center; margin-top: 20px">
+              <el-button type="primary" :disabled="smilesFileList.length === 0 || smilesLoading"
+                @click="handleSmilesExtract">
+                开始抽取
+              </el-button>
+            </div>
+
+            <div v-if="smilesResults.length > 0" class="reaxys-result-container">
+              <div class="table-title">识别结果明细</div>
+
+              <div v-for="(item, idx) in smilesResults" :key="idx" class="rx-block">
+                <div class="rx-header">
+                  <span class="rx-id-tag">结构 #{{ idx + 1 }}</span>
+                </div>
+
+                <div class="reaction-img-box">
+                  <el-image :src="item.image_url" fit="contain" class="rx-img" :preview-src-list="[item.image_url]">
+                    <template #placeholder>
+                      <div class="image-slot">加载中...</div>
+                    </template>
+                  </el-image>
+                </div>
+
+                <el-table :data="[item]" border stripe style="width: 100%">
+                  <el-table-column label="SMILES 序列" min-width="200">
+                    <template #default="scope">
+                      <div class="smiles-text" style="font-size: 16px; padding: 8px">
+                        {{ scope.row.smiles }}
+                      </div>
+                    </template>
+                  </el-table-column>
+                </el-table>
+              </div>
+            </div>
+          </div>
         </el-tab-pane>
 
         <el-tab-pane name="reaction_parse">
@@ -320,6 +369,10 @@ export default {
       textLoading: false,
       textResults: [],
 
+      smilesLoading: false,
+      smilesFileList: [],
+      smilesResults: [],
+
       pdfLoading: false,
       originalFilename: "",
       reaxysResults: [],
@@ -363,6 +416,48 @@ export default {
         this.$message.error("网络或服务器异常，无法完成文本抽取");
       } finally {
         this.textLoading = false;
+      }
+    },
+
+    handleSmilesChange(uploadFile, uploadFiles) {
+      this.smilesFileList = uploadFiles;
+    },
+
+    handleSmilesRemove(uploadFile, uploadFiles) {
+      this.smilesFileList = uploadFiles;
+    },
+
+    async handleSmilesExtract() {
+      if (this.smilesFileList.length === 0) return;
+
+      this.smilesLoading = true;
+      this.smilesResults = [];
+
+      const formData = new FormData();
+      this.smilesFileList.forEach((file) => {
+        if (file.raw) {
+          formData.append("images", file.raw);
+        }
+      });
+
+      try {
+        const response = await axios.post("http://localhost:9001/ie/smiles", formData, {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        });
+
+        if (response.data && response.data.code === 200) {
+          this.smilesResults = response.data.data || [];
+          this.$message.success("分子结构识别成功！");
+        } else {
+          this.$message.error(response.data.msg || "识别失败，请稍后重试");
+        }
+      } catch (error) {
+        console.error("Smiles extraction error:", error);
+        this.$message.error("网络或服务器异常，无法完成识别");
+      } finally {
+        this.smilesLoading = false;
       }
     },
 
