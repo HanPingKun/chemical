@@ -8,6 +8,92 @@
               <span>文本信息抽取</span>
             </span>
           </template>
+
+          <div v-loading="textLoading" element-loading-text="正在抽取文本信息，请稍候..." class="upload-card">
+            <el-input v-model="textInput" type="textarea" :rows="6" placeholder="请输入需要抽取的化学文献或反应段落文本..."
+              resize="vertical" style="margin-bottom: 20px" />
+
+            <div class="button-row">
+              <el-button type="primary" :disabled="!textInput.trim() || textLoading" @click="handleTextExtract">
+                开始抽取
+              </el-button>
+            </div>
+
+            <div v-if="textResults.length > 0" class="reaxys-result-container">
+              <div class="table-title">抽取结果明细</div>
+              <el-table :data="textResults" border stripe style="width: 100%" class="result-table">
+                <el-table-column label="序号" type="index" width="60" align="center" />
+
+                <el-table-column label="反应物 (Reactant)" min-width="150">
+                  <template #default="scope">
+                    <div v-for="(r, i) in scope.row.reactant" :key="'r-' + i" class="smiles-text">
+                      {{ r }}
+                    </div>
+                  </template>
+                </el-table-column>
+
+                <el-table-column label="产物 (Product)" min-width="150">
+                  <template #default="scope">
+                    <div v-for="(p, i) in scope.row.product" :key="'p-' + i" class="smiles-text">
+                      {{ p }}
+                    </div>
+                  </template>
+                </el-table-column>
+
+                <el-table-column label="催化剂 (Catalyst)" min-width="120">
+                  <template #default="scope">
+                    <el-tag v-for="c in scope.row.catalyst" :key="c" size="small" class="m-1">
+                      {{ c }}
+                    </el-tag>
+                    <span v-if="!scope.row.catalyst || scope.row.catalyst.length === 0">-</span>
+                  </template>
+                </el-table-column>
+
+                <el-table-column label="溶剂 (Solvent)" min-width="120">
+                  <template #default="scope">
+                    <el-tag v-for="s in scope.row.solvent" :key="s" type="success" size="small" class="m-1">
+                      {{ s }}
+                    </el-tag>
+                    <span v-if="!scope.row.solvent || scope.row.solvent.length === 0">-</span>
+                  </template>
+                </el-table-column>
+
+                <el-table-column label="试剂 (Reagent)" min-width="120">
+                  <template #default="scope">
+                    <span>{{ scope.row.reagent?.join(", ") || "-" }}</span>
+                  </template>
+                </el-table-column>
+
+                <el-table-column label="温度 (Temp)" width="100" align="center">
+                  <template #default="scope">
+                    <span>{{ scope.row.temperature?.join(", ") || "-" }}</span>
+                  </template>
+                </el-table-column>
+
+                <el-table-column label="时间 (Time)" width="100" align="center">
+                  <template #default="scope">
+                    <span>{{ scope.row.time?.join(", ") || "-" }}</span>
+                  </template>
+                </el-table-column>
+
+                <el-table-column label="后处理 (After)" min-width="120">
+                  <template #default="scope">
+                    <span class="after-text">
+                      {{ scope.row.after?.join(" → ") || "-" }}
+                    </span>
+                  </template>
+                </el-table-column>
+
+                <el-table-column label="产率 (Yield)" width="100" align="center">
+                  <template #default="scope">
+                    <span class="yield-highlight">
+                      {{ scope.row.yield_rate?.join(", ") || "-" }}
+                    </span>
+                  </template>
+                </el-table-column>
+              </el-table>
+            </div>
+          </div>
         </el-tab-pane>
 
         <el-tab-pane name="smiles">
@@ -18,7 +104,7 @@
           </template>
         </el-tab-pane>
 
-        <el-tab-pane name="reaction">
+        <el-tab-pane name="reaction_parse">
           <template #label>
             <span class="custom-tabs-label">
               <span>方程式解析</span>
@@ -26,7 +112,7 @@
           </template>
         </el-tab-pane>
 
-        <el-tab-pane name="reaction">
+        <el-tab-pane name="diagram">
           <template #label>
             <span class="custom-tabs-label">
               <span>文献示意图解析</span>
@@ -222,7 +308,7 @@ import axios from "axios";
 export default {
   data() {
     return {
-      activeTab: "mulit", // 当前激活的Tab名称
+      activeTab: "text",
       form: {
         smiles: "",
         smiles1: "",
@@ -230,12 +316,14 @@ export default {
       },
       predictedYield: null,
 
-      // === Reaxys 业务原有状态 ===
+      textInput: "",
+      textLoading: false,
+      textResults: [],
+
       pdfLoading: false,
       originalFilename: "",
       reaxysResults: [],
 
-      // === 新增：多模态对话 Agent 状态 ===
       chatList: [
         {
           role: "ai",
@@ -243,12 +331,41 @@ export default {
         },
       ],
       inputText: "",
-      inputImages: [], // 存储待发送的图片 { file: File, url: String }
-      isThinking: false, // 控制思考状态显示
+      inputImages: [],
+      isThinking: false,
     };
   },
   methods: {
-    // ==================== 原有：Reaxys PDF 解析 ====================
+    async handleTextExtract() {
+      if (!this.textInput.trim()) return;
+
+      this.textLoading = true;
+      this.textResults = [];
+
+      const formData = new FormData();
+      formData.append("text", this.textInput.trim());
+
+      try {
+        const response = await axios.post("http://localhost:9001/ie/text", formData, {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        });
+
+        if (response.data && response.data.code === 200) {
+          this.textResults = response.data.data || [];
+          this.$message.success("文本信息抽取成功！");
+        } else {
+          this.$message.error(response.data.msg || "抽取失败，请稍后重试");
+        }
+      } catch (error) {
+        console.error("Text extraction error:", error);
+        this.$message.error("网络或服务器异常，无法完成文本抽取");
+      } finally {
+        this.textLoading = false;
+      }
+    },
+
     async handleFileChange(uploadFile) {
       if (!uploadFile) return;
       const formData = new FormData();
@@ -279,8 +396,6 @@ export default {
       }
     },
 
-    // ==================== 新增：多模态 Agent 对话交互 ====================
-    // 监听输入框 Ctrl+V 粘贴事件
     handlePaste(event) {
       const items = (event.clipboardData || window.clipboardData).items;
       for (let item of items) {
@@ -296,7 +411,6 @@ export default {
       }
     },
 
-    // 手动点击按钮选择本地图片
     handleFileSelect(event) {
       const files = event.target.files;
       for (let file of files) {
@@ -305,17 +419,14 @@ export default {
           url: URL.createObjectURL(file),
         });
       }
-      // 清空 value 允许重复选同一个文件
       event.target.value = null;
     },
 
-    // 移除待发送的图片
     removeImage(index) {
       URL.revokeObjectURL(this.inputImages[index].url);
       this.inputImages.splice(index, 1);
     },
 
-    // 自动滚动到聊天底部
     scrollToBottom() {
       this.$nextTick(() => {
         const history = this.$refs.chatHistory;
@@ -325,11 +436,9 @@ export default {
       });
     },
 
-    // 发送消息到后端 Multi-Agents 接口
     async sendMessage() {
       if (!this.inputText.trim() && this.inputImages.length === 0) return;
 
-      // 1. 将用户的输入组装并放入聊天历史列表
       const userMsg = {
         role: "user",
         text: this.inputText.trim(),
@@ -338,17 +447,14 @@ export default {
       this.chatList.push(userMsg);
       this.scrollToBottom();
 
-      // 2. 构造发送给后端的 FormData
       const formData = new FormData();
       if (this.inputText.trim()) {
         formData.append("text", this.inputText.trim());
       }
       this.inputImages.forEach((imgObj) => {
-        // 根据你后端的具体接收字段名，这里默认以 "images" 传入
         formData.append("images", imgObj.file);
       });
 
-      // 3. 状态重置：清空输入区，开启 AI 思考动画
       this.inputText = "";
       this.inputImages = [];
       this.isThinking = true;
@@ -359,7 +465,6 @@ export default {
           headers: { "Content-Type": "multipart/form-data" },
         });
 
-        // 假设后端成功返回的结构为 { code: 200, data: "提取的文本信息..." }
         if (response.data && response.data.code === 200) {
           this.chatList.push({
             role: "ai",
@@ -388,7 +493,6 @@ export default {
 </script>
 
 <style scoped>
-/* ==================== 原有样式 ==================== */
 .header {
   padding: 0px 0;
   color: white;
@@ -575,7 +679,6 @@ export default {
   color: rgb(1, 70, 138) !important;
 }
 
-/* ==================== 新增：Agent 对话界面样式 ==================== */
 .chat-container {
   display: flex;
   flex-direction: column;
@@ -598,7 +701,6 @@ export default {
   align-items: flex-start;
 }
 
-/* AI 气泡靠左 */
 .chat-message.ai {
   flex-direction: row;
 }
@@ -610,7 +712,6 @@ export default {
   border-radius: 4px 12px 12px 12px;
 }
 
-/* 用户气泡靠右 */
 .chat-message.user {
   flex-direction: row-reverse;
 }
@@ -666,7 +767,6 @@ export default {
   font-style: italic;
 }
 
-/* 底部输入区 */
 .chat-input-area {
   border-top: 1px solid #dcdfe6;
   background-color: #ffffff;
