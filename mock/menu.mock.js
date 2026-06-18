@@ -48,7 +48,7 @@ export default defineMock([
             },
             {
               path: "TiaojianYuce",
-              component: "functionShow/TiaojianYuce/index",
+              component: "",
               name: "TiaojianYuce",
               meta: {
                 title: "条件预测",
@@ -58,6 +58,47 @@ export default defineMock([
                 alwaysShow: false,
                 params: null,
               },
+              children: [
+                {
+                  path: "KuaisuYuce",
+                  component: "functionShow/TiaojianYuce/KuaisuYuce/index",
+                  name: "KuaisuYuce",
+                  meta: {
+                    title: "快速预测",
+                    icon: "el-icon-User",
+                    hidden: false,
+                    keepAlive: true,
+                    alwaysShow: false,
+                    params: null,
+                  },
+                },
+                {
+                  path: "ShenduYuce",
+                  component: "functionShow/TiaojianYuce/ShenduYuce/index",
+                  name: "ShenduYuce",
+                  meta: {
+                    title: "深度预测",
+                    icon: "el-icon-User",
+                    hidden: false,
+                    keepAlive: true,
+                    alwaysShow: false,
+                    params: null,
+                  },
+                },
+                {
+                  path: "TupuChaxun",
+                  component: "functionShow/TiaojianYuce/TupuChaxun/index",
+                  name: "TupuChaxun",
+                  meta: {
+                    title: "图谱查询",
+                    icon: "el-icon-User",
+                    hidden: false,
+                    keepAlive: true,
+                    alwaysShow: false,
+                    params: null,
+                  },
+                },
+              ],
             },
             {
               path: "LeixingYuce",
